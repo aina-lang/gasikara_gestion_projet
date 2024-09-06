@@ -131,16 +131,7 @@ export default function MakeSidebar({ user }) {
                     text: "Tous les Projets",
                     link: "/projects/",
                 },
-                {
-                    icon: <ListTodoIcon />,
-                    text: "Tâches",
-                    link: "/projects/settings",
-                },
-                {
-                    icon: <CategoryOutlined />,
-                    text: "Catégories",
-                    link: "/projects/settings",
-                },
+
                 {
                     icon: <CogIcon />,
                     text: "Paramètres des Projets",
@@ -148,6 +139,16 @@ export default function MakeSidebar({ user }) {
                 },
             ],
             link: "/projects",
+        },
+        {
+            icon: <ListTodoIcon />,
+            text: "Tâches",
+            link: "/tasks/",
+        },
+        {
+            icon: <CategoryOutlined />,
+            text: "Catégories",
+            link: "/categories/",
         },
 
         {
