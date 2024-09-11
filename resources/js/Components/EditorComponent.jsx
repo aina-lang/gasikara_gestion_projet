@@ -74,11 +74,11 @@ const EditorComponent = () => {
     }, []);
 
     return (
-        <div className="flex flex-col  border border-gray-300 rounded-md shadow-sm  overflow-hidden dark:bg-gray-800 dark:border-gray-700">
+        <div className="flex flex-col   border border-gray-300 rounded-md shadow-sm  overflow-hidden dark:bg-gray-800 dark:border-gray-700">
             <MenuBar editor={editor} />
             <div
                 ref={editorRef}
-                className="min-h-[200px] p-4  border-t-0 border-gray-300 rounded-md bg-white dark:bg-gray-900 dark:border-gray-800"
+                className="min-h-[200px] p-4 bg-gray-100 border-t-0 border-gray-300 rounded-md  dark:bg-gray-900 dark:border-gray-800"
             ></div>
         </div>
     );

@@ -11,54 +11,53 @@ import PrimaryButton from "@/Components/PrimaryButton";
 import { Input } from "@headlessui/react";
 import { SearchIcon } from "lucide-react";
 
-const columns = [
-    { field: "id", headerName: "ID", width: 90 },
-    {
-        field: "firstName",
-        headerName: "First name",
-        width: 150,
-        editable: true,
-    },
-    {
-        field: "lastName",
-        headerName: "Last name",
-        width: 150,
-        editable: true,
-    },
-    {
-        field: "age",
-        headerName: "Age",
-        type: "number",
-        width: 110,
-        editable: true,
-    },
-    {
-        field: "fullName",
-        headerName: "Full name",
-        description: "This column has a value getter and is not sortable.",
-        sortable: false,
-        width: 160,
-        valueGetter: (value, row) =>
-            `${row.firstName || ""} ${row.lastName || ""}`,
-    },
-];
-
-const rows = [
-    { id: 1, lastName: "Snow", firstName: "Jon", age: 14 },
-    { id: 2, lastName: "Lannister", firstName: "Cersei", age: 31 },
-    { id: 3, lastName: "Lannister", firstName: "Jaime", age: 31 },
-    { id: 4, lastName: "Stark", firstName: "Arya", age: 11 },
-    { id: 5, lastName: "Targaryen", firstName: "Daenerys", age: null },
-    { id: 6, lastName: "Melisandre", firstName: null, age: 150 },
-    { id: 7, lastName: "Clifford", firstName: "Ferrara", age: 44 },
-    { id: 8, lastName: "Frances", firstName: "Rossini", age: 36 },
-    { id: 9, lastName: "Roxie", firstName: "Harvey", age: 65 },
-];
-
-export default function Dashboard({ auth }) {
+export default function Dashboard({ auth, categories }) {
     const breadcrumbItems = [
         { label: "Home", href: "/" },
         { label: "Projets" },
+    ];
+
+    console.log(categories);
+    const rows = categories.map((category) => ({
+        id: category.id,
+        label: category.label,
+        description: category.description,
+        // color: category.color,
+        tms: category.tms,
+    }));
+
+    const columns = [
+        { field: "id", headerName: "ID", width: 90 },
+        {
+            field: "label",
+            headerName: "Label",
+            width: 150,
+            editable: false,
+        },
+        {
+            field: "description",
+            headerName: "Description",
+            width: 250,
+            editable: false,
+            renderCell: (params) => (
+                <div
+                    dangerouslySetInnerHTML={{ __html: params.value }}
+                    // Additional styling can be added here
+                />
+            ),
+        },
+        // {
+        //     field: "color",
+        //     headerName: "Color",
+        //     width: 120,
+        //     editable: false,
+        // },
+        {
+            field: "tms",
+            headerName: "Last Modified",
+            width: 180,
+            editable: false,
+        },
     ];
 
     return (

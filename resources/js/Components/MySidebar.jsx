@@ -138,7 +138,6 @@ export default function MakeSidebar({ user }) {
                     link: "/projects/settings",
                 },
             ],
-            link: "/projects",
         },
         {
             icon: <ListTodoIcon />,

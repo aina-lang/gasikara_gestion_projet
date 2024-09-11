@@ -1,5 +1,5 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head, router } from "@inertiajs/react";
+import { Head, Link, router } from "@inertiajs/react";
 import React, { useState } from "react";
 import {
     Box,
@@ -8,12 +8,13 @@ import {
     CardContent,
     Grid,
     Pagination,
+    createTheme,
 } from "@mui/material";
 import { DataGrid, GridAddIcon } from "@mui/x-data-grid";
 import { Button } from "@/components/ui/button";
 import PrimaryButton from "@/Components/PrimaryButton";
 import { Input } from "@headlessui/react";
-import { GridIcon, SearchIcon } from "lucide-react";
+import { GlobeIcon, GlobeLockIcon, GridIcon, SearchIcon } from "lucide-react";
 import {
     ContextMenu,
     ContextMenuContent,
@@ -25,11 +26,79 @@ import {
     Assessment,
     AttachMoney,
     CalendarToday,
+    Lock,
     Person,
     TableView,
     Visibility,
 } from "@mui/icons-material";
 import { format } from "date-fns";
+
+import { Avatar, Badge } from "@mui/material";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+const theme = createTheme({
+    mixins: {
+        MuiDataGrid: {
+            // Pinned columns sections
+            pinnedBackground: "#340606",
+            // Headers, and top & bottom fixed rows
+            containerBackground: "#343434",
+        },
+    },
+});
+const UserAvatars = ({ users }) => {
+    const maxDisplay = 2;
+    const displayedUsers = users.slice(0, maxDisplay);
+    const moreCount = users.length - maxDisplay;
+
+    return (
+        <div style={{ display: "flex", alignItems: "center" }}>
+            {displayedUsers.map((user, index) => (
+                <TooltipProvider key={user.id}>
+                    <Tooltip>
+                        <TooltipTrigger>
+                            <Avatar
+                                src={user.avatarUrl}
+                                alt={user.firstname}
+                                style={{ marginLeft: index > 0 ? -10 : 0 }}
+                            />
+                        </TooltipTrigger>
+                        <TooltipContent
+                            style={{
+                                backgroundColor: "white",
+                                color: "black",
+                                borderRadius: "4px",
+                                padding: "8px",
+                                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                                fontSize: "0.875rem",
+                                zIndex: 99999,
+                            }}
+                        >
+                            <div>
+                                <strong>
+                                    {user.firstname} {user.lastname}
+                                </strong>
+                                <div>{user.email}</div>
+                            </div>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            ))}
+            {moreCount > 0 && (
+                <Badge
+                    badgeContent={`+${moreCount}`}
+                    color="secondary"
+                    style={{ marginLeft: 10 }}
+                />
+            )}
+        </div>
+    );
+};
 
 // Définir les statuts de projet avec leurs couleurs
 const projectStatuses = [
@@ -39,49 +108,6 @@ const projectStatuses = [
     { label: "Annulé", value: "canceled", color: "red" },
 ];
 
-// Mock data pour les projets
-const generateProjects = (num) => {
-    const projects = [];
-    const startDate = new Date("2023-10-26");
-    const endDate = new Date("2023-11-30");
-    const visibilityOptions = ["Public", "Private", "Assigned"];
-    const statuses = ["not_started", "in_progress", "completed", "closed"];
-
-    for (let i = 1; i <= num; i++) {
-        // Générer des dates aléatoires entre startDate et endDate
-        const randomStartDate = new Date(
-            startDate.getTime() +
-                Math.random() * (endDate.getTime() - startDate.getTime())
-        );
-        const randomEndDate = new Date(
-            randomStartDate.getTime() +
-                Math.random() * (endDate.getTime() - randomStartDate.getTime())
-        );
-
-        projects.push({
-            id: i,
-            reference: `DOL-${String(i).padStart(3, "0")}`,
-            label: `Project ${i}`,
-            startDate: randomStartDate.toISOString().split("T")[0],
-            endDate: randomEndDate.toISOString().split("T")[0],
-            visibility:
-                visibilityOptions[
-                    Math.floor(Math.random() * visibilityOptions.length)
-                ],
-            assignedTo: `User ${Math.floor(Math.random() * 10) + 1}`,
-            status: statuses[Math.floor(Math.random() * statuses.length)],
-            opportunityAmount: Math.floor(Math.random() * 10000) + 1000,
-            opportunityProbability: Math.random(),
-            state: Math.random() > 0.5 ? "active" : "inactive",
-        });
-    }
-
-    return projects;
-};
-
-const projects = generateProjects(100);
-
-// Fonction pour obtenir le label du statut à partir de sa valeur
 const getStatusLabel = (statusValue) => {
     const status = projectStatuses.find(
         (status) => status.value === statusValue
@@ -89,7 +115,8 @@ const getStatusLabel = (statusValue) => {
     return status ? status.label : statusValue;
 };
 
-export default function Projects({ auth }) {
+export default function Projects({ auth, projects }) {
+    console.log(projects);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedRow, setSelectedRow] = useState(null);
     const [gridView, setGridView] = useState(false); // État pour basculer entre la vue en grille et la vue en tableau
@@ -125,165 +152,305 @@ export default function Projects({ auth }) {
         }
     };
 
-    // Définir les colonnes pour le DataGrid
-    const columns = [
-        { field: "id", headerName: "ID", width: 90 },
-        {
-            field: "reference",
-            headerName: "Référence",
-            width: 150,
-            renderCell: (params) => (
-                <ContextMenu>
-                    <ContextMenuTrigger>
-                        <span className="h-full w-full">{params.value}</span>
-                    </ContextMenuTrigger>
-                    <ContextMenuContent>
-                        <ContextMenuItem
-                            onClick={() => handleEditProject(params.row.id)}
-                        >
-                            Modifier
-                        </ContextMenuItem>
-                        <ContextMenuItem
-                            onClick={() => handleDeleteProject(params.row.id)}
-                        >
-                            Supprimer
-                        </ContextMenuItem>
-                    </ContextMenuContent>
-                </ContextMenu>
-            ),
-        },
-        {
-            field: "label",
-            headerName: "Libellé",
-            width: 200,
-            renderCell: (params) => (
-                <ContextMenu>
-                    <ContextMenuTrigger>
-                        <span className="h-full w-full">{params.value}</span>
-                    </ContextMenuTrigger>
-                    <ContextMenuContent>
-                        <ContextMenuItem
-                            onClick={() => handleEditProject(params.row.id)}
-                        >
-                            Modifier
-                        </ContextMenuItem>
-                        <ContextMenuItem
-                            onClick={() => handleDeleteProject(params.row.id)}
-                        >
-                            Supprimer
-                        </ContextMenuItem>
-                    </ContextMenuContent>
-                </ContextMenu>
-            ),
-        },
-        {
-            field: "startDate",
-            headerName: "Date début",
-            width: 150,
-            renderCell: (params) => (
-                <ContextMenu>
-                    <ContextMenuTrigger>
-                        <span className="h-full w-full">{params.value}</span>
-                    </ContextMenuTrigger>
-                    <ContextMenuContent>
-                        <ContextMenuItem
-                            onClick={() => handleEditProject(params.row.id)}
-                        >
-                            Modifier
-                        </ContextMenuItem>
-                        <ContextMenuItem
-                            onClick={() => handleDeleteProject(params.row.id)}
-                        >
-                            Supprimer
-                        </ContextMenuItem>
-                    </ContextMenuContent>
-                </ContextMenu>
-            ),
-        },
-        {
-            field: "endDate",
-            headerName: "Date fin",
-            width: 150,
-            renderCell: (params) => (
-                <ContextMenu>
-                    <ContextMenuTrigger>
-                        <span className="h-full w-full">{params.value}</span>
-                    </ContextMenuTrigger>
-                    <ContextMenuContent>
-                        <ContextMenuItem
-                            onClick={() => handleEditProject(params.row.id)}
-                        >
-                            Modifier
-                        </ContextMenuItem>
-                        <ContextMenuItem
-                            onClick={() => handleDeleteProject(params.row.id)}
-                        >
-                            Supprimer
-                        </ContextMenuItem>
-                    </ContextMenuContent>
-                </ContextMenu>
-            ),
-        },
-        {
-            field: "assignedTo",
-            headerName: "Assigné à",
-            width: 150,
-            renderCell: (params) => (
-                <ContextMenu>
-                    <ContextMenuTrigger>
-                        <span className="h-full w-full">{params.value}</span>
-                    </ContextMenuTrigger>
-                    <ContextMenuContent>
-                        <ContextMenuItem
-                            onClick={() => handleEditProject(params.row.id)}
-                        >
-                            Modifier
-                        </ContextMenuItem>
-                        <ContextMenuItem
-                            onClick={() => handleDeleteProject(params.row.id)}
-                        >
-                            Supprimer
-                        </ContextMenuItem>
-                    </ContextMenuContent>
-                </ContextMenu>
-            ),
-        },
-        {
-            field: "status",
-            headerName: "Statut",
-            width: 150,
-            renderCell: (params) => (
-                <ContextMenu>
-                    <ContextMenuTrigger>
-                        <span
-                            style={{
-                                color: projectStatuses.find(
-                                    (s) => s.value === params.value
-                                )?.color,
-                            }}
-                            className="h-full w-full"
-                        >
-                            {getStatusLabel(params.value)}
-                        </span>
-                    </ContextMenuTrigger>
-                    <ContextMenuContent>
-                        <ContextMenuItem
-                            onClick={() => handleEditProject(params.row.id)}
-                        >
-                            Modifier
-                        </ContextMenuItem>
-                        <ContextMenuItem
-                            onClick={() => handleDeleteProject(params.row.id)}
-                        >
-                            Supprimer
-                        </ContextMenuItem>
-                    </ContextMenuContent>
-                </ContextMenu>
-            ),
-        },
-        // Ajouter d'autres colonnes si nécessaire
-    ];
+    const arrayfields = {
+        ref: { checked: true },
+        title: { checked: true },
+        // nom: { checked: true },
+        // name_alias: { checked: true },
+        // commercial: { checked: true },
+        dateo: { checked: true },
+        datee: { checked: true },
+        public: { checked: true },
+        assigned_users: { checked: true },
+        fk_opp_status: { checked: true },
+        opp_amount: { checked: true },
+        // opp_percent: { checked: true },
+        // opp_weighted_amount: { checked: true },
+        // budget_amount: { checked: true },
+        // usage_opportunity: { checked: true },
+        // usage_task: { checked: true },
+        // usage_bill_time: { checked: true },
+        // usage_organize_event: { checked: true },
+        // accept_conference_suggestions: { checked: true },
+        // accept_booth_suggestions: { checked: true },
+        // price_registration: { checked: true },
+        // price_booth: { checked: true },
+        // login: { checked: true },
+    };
 
+    // Fonction pour générer les colonnes du DataGrid
+    const generateColumns = (fields) => {
+        return Object.keys(fields)
+            .map((key) => {
+                const field = fields[key];
+                switch (key) {
+                    case "ref":
+                        return {
+                            field: "ref",
+                            headerName: "Référence",
+                            width: 150,
+                            renderCell: (params) => (
+                                <Link>
+                                    <p className="text-blue-500 font-medium">
+                                        {params.value || "N/A"}
+                                    </p>
+                                </Link>
+                            ),
+                        };
+                    case "title":
+                        return {
+                            field: "title",
+                            headerName: "Libellé",
+                            width: 200,
+                            renderCell: (params) => (
+                                <p className="text-gray-800 font-medium">
+                                    {params.value || "N/A"}
+                                </p>
+                            ),
+                        };
+                    case "nom":
+                        return {
+                            field: "societe",
+                            headerName: "Tiers",
+                            width: 150,
+                            renderCell: (params) => (
+                                <p className="text-gray-800 font-medium">
+                                    {params.value || "N/A"}
+                                </p>
+                            ),
+                        };
+                    case "name_alias":
+                        return {
+                            field: "societe_alias",
+                            headerName: "Alias",
+                            width: 150,
+                            renderCell: (params) => (
+                                <p className="text-gray-800 font-medium">
+                                    {params.value || "N/A"}
+                                </p>
+                            ),
+                        };
+                    case "commercial":
+                        return {
+                            field: "commercial",
+                            headerName: "Représentant commercial",
+                            width: 150,
+                            renderCell: (params) => (
+                                <p className="text-gray-800 font-medium">
+                                    {params.value || "N/A"}
+                                </p>
+                            ),
+                        };
+                    case "dateo":
+                        return {
+                            field: "dateo",
+                            headerName: "Date début",
+                            width: 250,
+                            renderCell: (params) => (
+                                <p className="text-gray-800 font-medium">
+                                    {params.value || "N/A"}
+                                </p>
+                            ),
+                        };
+                    case "datee":
+                        return {
+                            field: "datee",
+                            headerName: "Date fin",
+                            width: 250,
+                            renderCell: (params) => (
+                                <p className="text-gray-800 font-medium">
+                                    {params.value || "N/A"}
+                                </p>
+                            ),
+                        };
+                    case "public":
+                        return {
+                            field: "public",
+                            headerName: "Visibilité",
+                            width: 150,
+                            renderCell: (params) => (
+                                <div className="flex items-center h-full justify-center">
+                                    {params.value === "0" ? (
+                                        <Lock className="h-5 w-5 text-green-500" />
+                                    ) : (
+                                        <GlobeIcon className="h-5 w-5 text-red-500" />
+                                    )}
+                                </div>
+                            ),
+                        };
+                    case "assigned_users":
+                        return {
+                            field: "assigned_users",
+                            headerName: "Assigné à",
+                            width: 250,
+                            renderCell: (params) => (
+                                <div className="flex items-center">
+                                    <UserAvatars users={params.value} />
+                                </div>
+                            ),
+                        };
+                    case "fk_opp_status":
+                        return {
+                            field: "opp_status",
+                            headerName: "Statut opportunités",
+                            width: 150,
+                            renderCell: (params) => (
+                                <p className="text-gray-800 font-medium">
+                                    {params.value || "N/A"}
+                                </p>
+                            ),
+                        };
+                    case "opp_amount":
+                        return {
+                            field: "opp_amount",
+                            headerName: "Montant opportunités",
+                            width: 150,
+                            renderCell: (params) => (
+                                <p className="text-gray-800 font-medium">
+                                    {params.value || "N/A"}
+                                </p>
+                            ),
+                        };
+                    case "opp_percent":
+                        return {
+                            field: "opp_percent",
+                            headerName: "Pourcentage opportunités",
+                            width: 150,
+                            renderCell: (params) => (
+                                <p className="text-gray-800 font-medium">
+                                    {params.value || "N/A"}
+                                </p>
+                            ),
+                        };
+                    case "opp_weighted_amount":
+                        return {
+                            field: "weighted_amount",
+                            headerName: "Montant pondéré",
+                            width: 150,
+                            renderCell: (params) => (
+                                <p className="text-gray-800 font-medium">
+                                    {params.value || "N/A"}
+                                </p>
+                            ),
+                        };
+                    case "budget_amount":
+                        return {
+                            field: "budget_amount",
+                            headerName: "Montant budget",
+                            width: 150,
+                            renderCell: (params) => (
+                                <p className="text-gray-800 font-medium">
+                                    {params.value || "N/A"}
+                                </p>
+                            ),
+                        };
+                    case "usage_opportunity":
+                        return {
+                            field: "usage_opportunity",
+                            headerName: "Utilisation opportunité",
+                            width: 200,
+                            renderCell: (params) => (
+                                <p className="text-gray-800 font-medium">
+                                    {params.value === "1" ? "Oui" : "Non"}
+                                </p>
+                            ),
+                        };
+                    case "usage_task":
+                        return {
+                            field: "usage_task",
+                            headerName: "Utilisation tâche",
+                            width: 200,
+                            renderCell: (params) => (
+                                <p className="text-gray-800 font-medium">
+                                    {params.value === "1" ? "Oui" : "Non"}
+                                </p>
+                            ),
+                        };
+                    case "usage_bill_time":
+                        return {
+                            field: "usage_bill_time",
+                            headerName: "Utilisation facturation",
+                            width: 200,
+                            renderCell: (params) => (
+                                <p className="text-gray-800 font-medium">
+                                    {params.value === "1" ? "Oui" : "Non"}
+                                </p>
+                            ),
+                        };
+                    case "usage_organize_event":
+                        return {
+                            field: "usage_organize_event",
+                            headerName: "Utilisation organiser événement",
+                            width: 200,
+                            renderCell: (params) => (
+                                <p className="text-gray-800 font-medium">
+                                    {params.value === "1" ? "Oui" : "Non"}
+                                </p>
+                            ),
+                        };
+                    case "accept_conference_suggestions":
+                        return {
+                            field: "accept_conference_suggestions",
+                            headerName: "Accepter suggestions conférence",
+                            width: 200,
+                            renderCell: (params) => (
+                                <p className="text-gray-800 font-medium">
+                                    {params.value === "1" ? "Oui" : "Non"}
+                                </p>
+                            ),
+                        };
+                    case "accept_booth_suggestions":
+                        return {
+                            field: "accept_booth_suggestions",
+                            headerName: "Accepter suggestions stand",
+                            width: 200,
+                            renderCell: (params) => (
+                                <p className="text-gray-800 font-medium">
+                                    {params.value === "1" ? "Oui" : "Non"}
+                                </p>
+                            ),
+                        };
+                    case "price_registration":
+                        return {
+                            field: "price_registration",
+                            headerName: "Prix inscription",
+                            width: 150,
+                            renderCell: (params) => (
+                                <p className="text-gray-800 font-medium">
+                                    {params.value || "N/A"}
+                                </p>
+                            ),
+                        };
+                    case "price_booth":
+                        return {
+                            field: "price_booth",
+                            headerName: "Prix stand",
+                            width: 150,
+                            renderCell: (params) => (
+                                <p className="text-gray-800 font-medium">
+                                    {params.value || "N/A"}
+                                </p>
+                            ),
+                        };
+                    case "login":
+                        return {
+                            field: "login",
+                            headerName: "Login",
+                            width: 150,
+                            renderCell: (params) => (
+                                <p className="text-gray-800 font-medium">
+                                    {params.value || "N/A"}
+                                </p>
+                            ),
+                        };
+                    default:
+                        return null;
+                }
+            })
+            .filter((column) => column !== null);
+    };
+
+    const columns = generateColumns(arrayfields);
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -298,7 +465,18 @@ export default function Projects({ auth }) {
                         <div className="flex space-x-4">
                             {/* Un button grid view et table view */}
                             <button onClick={toggleGridView}>
-                                {gridView ? <GridIcon /> : <TableView />}
+                                {gridView ? (
+                                    <GridIcon
+                                        size={20}
+                                        className="
+                                  text-gray-700"
+                                    />
+                                ) : (
+                                    <TableView
+                                        className="h-8  w-8 
+                                 text-gray-700"
+                                    />
+                                )}
                             </button>
                             <div className="flex items-center bg-gray-50 pr-2 border rounded-md overflow-hidden dark:bg-gray-800">
                                 <Input
@@ -384,15 +562,44 @@ export default function Projects({ auth }) {
                     </Grid>
                 ) : (
                     <Box
-                        sx={{ height: 400, width: "100%" }}
-                        className="bg-white dark:bg-gray-900"
+                        sx={{ minHeight: 300, width: "100%" }}
+                        className="bg-white dark:bg-gray-900 rounded-md overflow-hidden shadow-sm"
                     >
                         <DataGrid
+                            hideFooter
                             rows={paginatedProjects}
                             columns={columns}
                             pageSize={10}
                             rowsPerPageOptions={[10]}
                             checkboxSelection
+                            getRowId={(row) => row.rowid}
+                            sx={{
+                                borderRadius: 0,
+                                border: 0,
+                                height: "100%",
+                                // boxShadow: 2,
+                                // border: 2,
+                                // borderColor: 'primary.light',
+                                // '& .MuiDataGrid-cell:hover': {
+                                //   color: 'primary.main',
+                                // },
+                                "& .MuiDataGrid-columnHeader, .MuiDataGrid-cell":
+                                    {
+                                        borderRight: "1px solid #303030",
+                                        ...theme.applyStyles("light", {
+                                            borderRightColor: "#f0f0f0",
+                                        }),
+                                    },
+                                "& .MuiDataGrid-columnHeader": {
+                                    backgroundColor: "#d1d5db",
+                                    color: "#374151",
+                                },
+                            }}
+                            getRowClassName={(params) =>
+                                params.indexRelativeToCurrentPage % 2 === 0
+                                    ? "even"
+                                    : "odd"
+                            }
                         />
                     </Box>
                 )}
@@ -406,3 +613,56 @@ export default function Projects({ auth }) {
         </AuthenticatedLayout>
     );
 }
+
+// const StyledDataGrid = styled(DataGrid)(({ theme }) => ({
+//     border: 0,
+//     color: 'rgba(255,255,255,0.85)',
+//     fontFamily: [
+//       '-apple-system',
+//       'BlinkMacSystemFont',
+//       '"Segoe UI"',
+//       'Roboto',
+//       '"Helvetica Neue"',
+//       'Arial',
+//       'sans-serif',
+//       '"Apple Color Emoji"',
+//       '"Segoe UI Emoji"',
+//       '"Segoe UI Symbol"',
+//     ].join(','),
+//     WebkitFontSmoothing: 'auto',
+//     letterSpacing: 'normal',
+//     '& .MuiDataGrid-columnsContainer': {
+//       backgroundColor: '#1d1d1d',
+//       ...theme.applyStyles('light', {
+//         backgroundColor: '#fafafa',
+//       }),
+//     },
+//     '& .MuiDataGrid-iconSeparator': {
+//       display: 'none',
+//     },
+//     '& .MuiDataGrid-columnHeader, .MuiDataGrid-cell': {
+//       borderRight: '1px solid #303030',
+//       ...theme.applyStyles('light', {
+//         borderRightColor: '#f0f0f0',
+//       }),
+//     },
+//     '& .MuiDataGrid-columnsContainer, .MuiDataGrid-cell': {
+//       borderBottom: '1px solid #303030',
+//       ...theme.applyStyles('light', {
+//         borderBottomColor: '#f0f0f0',
+//       }),
+//     },
+//     '& .MuiDataGrid-cell': {
+//       color: 'rgba(255,255,255,0.65)',
+//       ...theme.applyStyles('light', {
+//         color: 'rgba(0,0,0,.85)',
+//       }),
+//     },
+//     '& .MuiPaginationItem-root': {
+//       borderRadius: 0,
+//     },
+//     ...customCheckbox(theme),
+//     ...theme.applyStyles('light', {
+//       color: 'rgba(0,0,0,.85)',
+//     }),
+//   }));

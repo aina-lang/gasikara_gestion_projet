@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
+use Inertia\Inertia;
+
+use function Termwind\render;
 
 class ProjectController extends Controller
 {
@@ -15,7 +19,13 @@ class ProjectController extends Controller
      * @return \Illuminate\Http\RedirectResponse
      */
 
-    public function create(Request $request)
+    public function create()
+    {
+
+        return Inertia::render("Project/add");
+    }
+
+    public  function store(Request $request)
     {
         // Validation des données d'entrée
         $validator = Validator::make($request->all(), [
@@ -93,13 +103,13 @@ class ProjectController extends Controller
         try {
             // Envoi de la requête à l'API Dolibarr
             $response = Http::withHeaders([
-                'DOLAPIKEY' => env('DOLIBARR_API_KEY'), // Utilisez votre clé API
+                'DOLAPIKEY' => env('DOLIBARR_API_KEY'),
                 'Accept' => 'application/json',
             ])->post(env('DOLIBARR_API_URL') . '/projects', [
                 'request_data' => $data
             ]);
 
-            
+
             // Vérification de la réponse de l'API
             if ($response->successful()) {
                 // Redirection avec un message de succès
@@ -121,7 +131,28 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        //
+        $user = Auth::user();
+        $projects = [];
+        try {
+            $response = Http::withHeaders([
+                'DOLAPIKEY' => $user->api_key,
+            ])->get(config('services.dolibarr.base_url') . '/projects');
+            if ($response->successful()) {
+                $projects = $response->json();
+            } else {
+                // Handle error response here
+                $projects = []; // Or any default value
+            }
+        } catch (\Exception $e) {
+            // echo "Error: " . $e->getMessage();exit;
+            // Handle exceptions here
+            $projects = []; // Or any default value
+        }
+
+        // var_dump( $projects);exit;
+        return Inertia::render('Project/index', [
+            'projects' => $projects
+        ]);
     }
 
     /**
@@ -163,7 +194,7 @@ class ProjectController extends Controller
         $validator = Validator::make($request->all(), [
             'ref' => 'string|max:255',
             'title' => 'string|max:255',
-            'socid' => 'integer', 
+            'socid' => 'integer',
             'description' => 'string',
             'public' => 'integer',
             'datec' => 'date',

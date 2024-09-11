@@ -16,6 +16,7 @@ import {
     Typography,
     Grid,
     Chip,
+    Card,
 } from "@mui/material";
 import { GridAddIcon } from "@mui/x-data-grid";
 import PrimaryButton from "@/Components/PrimaryButton";
@@ -93,7 +94,7 @@ export default function AddProject({ auth }) {
         >
             <Head title="Ajouter un Projet" />
 
-            <div className="p-6 space-y-6 dark:text-gray-100">
+            <Card className="p-6 space-y-6 dark:text-gray-100 bg-white shadow-sm rounded-lg  dark:bg-gray-800" sx={{}} elevation={1}>
                 {/* Content for adding a new project */}
 
                 <Typography
@@ -103,31 +104,50 @@ export default function AddProject({ auth }) {
                 >
                     Ajouter un nouveau projet
                 </Typography>
-                <div className="bg-white shadow-lg rounded-lg p-6 dark:bg-gray-800">
+                <div className=" p-6 ">
                     {/* Form for adding a new project */}
                     <form className="space-y-6">
                         {/* Project name input */}
                         <div>
                             <InputLabel
-                                htmlFor="projectName"
+                                htmlFor="ref"
                                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3"
                             >
-                                Nom du projet
+                                Référence du projet
                             </InputLabel>
                             <TextField
                                 type="text"
-                                id="projectName"
-                                name="projectName"
+                                id="ref"
+                                name="ref"
+                                variant="outlined"
+                                fullWidth
+                                placeholder="PJ2409-0004"
+                                InputProps={{
+                                    className:
+                                        "bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
+                                }}
+                            />
+                        </div>
+                        <div>
+                            <InputLabel
+                                htmlFor="Libelle"
+                                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3"
+                            >
+                                Libellé
+                            </InputLabel>
+                            <TextField
+                                type="text"
+                                id="Libelle"
+                                name="Libelle"
                                 variant="outlined"
                                 fullWidth
                                 placeholder="Entrez le nom du projet"
                                 InputProps={{
                                     className:
-                                        "dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
+                                        "bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
                                 }}
                             />
                         </div>
-
                         {/* Project usage options */}
                         <div>
                             <Typography
@@ -171,7 +191,7 @@ export default function AddProject({ auth }) {
                                     id="visibility"
                                     name="visibility"
                                     variant="outlined"
-                                    className="dark:bg-gray-900 dark:text-gray-100"
+                                    className="bg-gray-100 dark:bg-gray-900 dark:text-gray-100"
                                     MenuProps={{
                                         classes: {
                                             paper: "dark:bg-gray-800 dark:text-gray-100",
@@ -200,7 +220,7 @@ export default function AddProject({ auth }) {
                                     id="opportunityStatus"
                                     name="opportunityStatus"
                                     variant="outlined"
-                                    className="dark:bg-gray-900 dark:text-gray-100"
+                                    className="bg-gray-100 dark:bg-gray-900 dark:text-gray-100"
                                     MenuProps={{
                                         classes: {
                                             paper: "dark:bg-gray-800 dark:text-gray-100",
@@ -237,7 +257,7 @@ export default function AddProject({ auth }) {
                                     placeholder="Entrez le montant de l'opportunité"
                                     InputProps={{
                                         className:
-                                            "dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
+                                            "bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
                                     }}
                                 />
                             </div>
@@ -259,7 +279,7 @@ export default function AddProject({ auth }) {
                                     placeholder="Entrez le budget"
                                     InputProps={{
                                         className:
-                                            "dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
+                                            "bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
                                     }}
                                 />
                             </div>
@@ -286,7 +306,7 @@ export default function AddProject({ auth }) {
                                     }}
                                     InputProps={{
                                         className:
-                                            "dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
+                                            "bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
                                     }}
                                 />
                                 <TextField
@@ -301,7 +321,7 @@ export default function AddProject({ auth }) {
                                     }}
                                     InputProps={{
                                         className:
-                                            "dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
+                                            "bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
                                     }}
                                 />
                             </div>
@@ -350,7 +370,7 @@ export default function AddProject({ auth }) {
                                         </div>
                                     )}
                                     variant="outlined"
-                                    className="dark:bg-gray-900 dark:text-gray-100"
+                                    className="bg-gray-100 dark:bg-gray-900 dark:text-gray-100"
                                     MenuProps={{
                                         classes: {
                                             paper: "dark:bg-gray-800 dark:text-gray-100",
@@ -368,15 +388,13 @@ export default function AddProject({ auth }) {
 
                         {/* Submit button */}
                         <div>
-                            <PrimaryButton
-                               className="py-2"
-                            >
+                            <PrimaryButton className="py-2">
                                 Créer le projet
                             </PrimaryButton>
                         </div>
                     </form>
                 </div>
-            </div>
+            </Card>
         </AuthenticatedLayout>
     );
 }

@@ -89,7 +89,7 @@ export default function Authenticated({ user, header, children, messages }) {
 
             <div className="flex-grow overflow-y-hidden">
                 {/* Navbar */}
-                <nav className="bg-white dark:bg-gray-800 m-1 rounded shadow-md py-1 px-4 sm:px-6 lg:px-8">
+                <nav className="bg-white dark:bg-gray-800 m-1 rounded shadow-sm py-1 px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
                         {/* Left Side (Optional Breadcrumbs or Back Button) */}
                         <div className="flex items-center">

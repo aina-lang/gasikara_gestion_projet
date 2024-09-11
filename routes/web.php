@@ -28,16 +28,17 @@ Route::middleware([DolibarrAuthMiddleware::class])->group(function () {
 
     // Profil
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
     // Authentification
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name("login.get");
     Route::post('/login', [LoginController::class, 'login'])->name("login");
-    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('/register', [LoginController::class, 'showRegisterForm'])->name("register.get");
     Route::post('/register', [LoginController::class, 'register'])->name("register");
 
     // Gestion des projets
     Route::prefix('projects')->group(function () {
+     
         Route::get('/', [ProjectController::class, 'index'])->name('projects.index');
         Route::get('/add', [ProjectController::class, 'create'])->name('projects.add');
         Route::post('/add', [ProjectController::class, 'store'])->name('projects.store');
