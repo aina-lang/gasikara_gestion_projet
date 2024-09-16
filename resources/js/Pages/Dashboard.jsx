@@ -88,11 +88,13 @@ export default function Dashboard({ auth }) {
                                         <Typography
                                             variant="h6"
                                             gutterBottom
+                                            className="dark:text-gray-300 flex justify-between items-center w-full"
                                             // className={`${gradientBackgrounds[index]}`}
                                         >
                                             {item.title}
+                                            {item.icon}
                                         </Typography>
-                                        {item.icon}
+                                    
                                     </Box>
                                     <Gauge
                                         width={150}
@@ -101,8 +103,8 @@ export default function Dashboard({ auth }) {
                                         min={0}
                                         max={100}
                                         color="white"
-                                        trackColor="gray"
-                                        textColor="white"
+                                        // trackColor="gray"
+                                        // textColor="white"
                                     />
                                 </CardContent>
                             </Card>
@@ -114,7 +116,8 @@ export default function Dashboard({ auth }) {
                     <Grid item xs={12} md={8}>
                         <Card
                             elevation={1}
-                            className="min-h-full dark:bg-gray-800"
+                            className="min-h-full dark:bg-gray-800 "
+                            // sx={{ backgroundColor: "transparent" }}
                         >
                             <CardContent>
                                 <Typography
@@ -148,8 +151,13 @@ export default function Dashboard({ auth }) {
                             </CardContent>
                         </Card>
                     </Grid>
-                    <Grid item xs={12} md={4}>
-                        <Card elevation={1} className="dark:bg-gray-800">
+                    <Grid
+                        item
+                        xs={12}
+                        md={4}
+                        className="grid grid-cols-1 gap-5"
+                    >
+                        {/* <Card elevation={1} className="dark:bg-gray-800">
                             <CardContent>
                                 <Typography
                                     variant="h6"
@@ -194,6 +202,82 @@ export default function Dashboard({ auth }) {
                                     height={200}
                                     legend={{ hidden: false }}
                                 />
+                            </CardContent>
+                        </Card> */}
+                        <Card elevation={1} className="dark:bg-gray-800">
+                            <CardContent>
+                                <Typography
+                                    variant="h6"
+                                    gutterBottom
+                                    className="dark:text-white"
+                                >
+                                    Tasks in Progress
+                                </Typography>
+                                {[
+                                    "Design UI",
+                                    "Develop Backend",
+                                    "Integrate API",
+                                ].map((task, index) => (
+                                    <Box
+                                        key={index}
+                                        display="flex"
+                                        justifyContent="space-between"
+                                        mb={1}
+                                    >
+                                        <Typography
+                                            variant="body2"
+                                            color="textSecondary"
+                                            className="dark:text-gray-400"
+                                        >
+                                            Task {index + 1}:
+                                        </Typography>
+                                        <Typography
+                                            variant="body2"
+                                            fontWeight="bold"
+                                            className="dark:text-white"
+                                        >
+                                            {task}
+                                        </Typography>
+                                    </Box>
+                                ))}
+                            </CardContent>
+                        </Card>
+                        <Card elevation={1} className="dark:bg-gray-800">
+                            <CardContent>
+                                <Typography
+                                    variant="h6"
+                                    gutterBottom
+                                    className="dark:text-white"
+                                >
+                                    Tasks in Progress
+                                </Typography>
+                                {[
+                                    "Design UI",
+                                    "Develop Backend",
+                                    "Integrate API",
+                                ].map((task, index) => (
+                                    <Box
+                                        key={index}
+                                        display="flex"
+                                        justifyContent="space-between"
+                                        mb={1}
+                                    >
+                                        <Typography
+                                            variant="body2"
+                                            color="textSecondary"
+                                            className="dark:text-gray-400"
+                                        >
+                                            Task {index + 1}:
+                                        </Typography>
+                                        <Typography
+                                            variant="body2"
+                                            fontWeight="bold"
+                                            className="dark:text-white"
+                                        >
+                                            {task}
+                                        </Typography>
+                                    </Box>
+                                ))}
                             </CardContent>
                         </Card>
                     </Grid>

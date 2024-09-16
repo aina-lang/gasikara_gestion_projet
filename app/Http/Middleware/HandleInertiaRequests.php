@@ -2,8 +2,8 @@
 
 namespace App\Http\Middleware;
 
-use Flasher\Prime\FlasherInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -14,12 +14,9 @@ class HandleInertiaRequests extends Middleware
      * @var string
      */
     protected $rootView = 'app';
-    private $flasher;
 
-    public function __construct(FlasherInterface $flasher)
-    {
-        $this->flasher = $flasher;
-    }
+
+    public function __construct() {}
     /**
      * Determine the current asset version.
      */
@@ -35,14 +32,18 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        // Nettoyer les messages flash après les avoir partagés
+        // Session::forget('success');
+        // Session::forget('error');
         return [
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
             ],
-            // 'messages' => $this->flasher->render(),
+            'flash' => fn() => [
+                'success' => session('success'),
+                'error' => session('error'),
+            ],
         ];
     }
-
-    
 }

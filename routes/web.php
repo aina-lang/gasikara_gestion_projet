@@ -44,7 +44,7 @@ Route::middleware([DolibarrAuthMiddleware::class])->group(function () {
         Route::post('/add', [ProjectController::class, 'store'])->name('projects.store');
         Route::get('/edit/{id}', [ProjectController::class, 'edit'])->name('projects.edit');
         Route::put('/edit/{id}', [ProjectController::class, 'update'])->name('projects.update');
-        Route::get('/view/{id}', [ProjectController::class, 'show'])->name('projects.view');
+        Route::get('/show/{id}', [ProjectController::class, 'show'])->name('projects.show');
         Route::delete('/delete/{id}', [ProjectController::class, 'destroy'])->name('projects.delete');
     });
 
@@ -55,7 +55,7 @@ Route::middleware([DolibarrAuthMiddleware::class])->group(function () {
         Route::post('/add', [CategoryController::class, 'store'])->name('categories.store');
         Route::get('/edit/{id}', [CategoryController::class, 'edit'])->name('categories.edit');
         Route::put('/edit/{id}', [CategoryController::class, 'update'])->name('categories.update');
-        Route::get('/view/{id}', [CategoryController::class, 'show'])->name('categories.view');
+        Route::get('/show/{id}', [CategoryController::class, 'show'])->name('categories.show');
         Route::delete('/delete/{id}', [CategoryController::class, 'destroy'])->name('categories.delete');
     });
 
@@ -66,7 +66,7 @@ Route::middleware([DolibarrAuthMiddleware::class])->group(function () {
         Route::post('/add', [TaskController::class, 'store'])->name('tasks.store');
         Route::get('/edit/{id}', [TaskController::class, 'edit'])->name('tasks.edit');
         Route::put('/edit/{id}', [TaskController::class, 'update'])->name('tasks.update');
-        Route::get('/view/{id}', [TaskController::class, 'show'])->name('tasks.view');
+        Route::get('/show/{id}', [TaskController::class, 'show'])->name('tasks.show');
         Route::delete('/delete/{id}', [TaskController::class, 'destroy'])->name('tasks.delete');
     });
 
@@ -77,7 +77,7 @@ Route::middleware([DolibarrAuthMiddleware::class])->group(function () {
         Route::post('/add', [EventController::class, 'store'])->name('events.store');
         Route::get('/edit/{id}', [EventController::class, 'edit'])->name('events.edit');
         Route::put('/edit/{id}', [EventController::class, 'update'])->name('events.update');
-        Route::get('/view/{id}', [EventController::class, 'show'])->name('events.view');
+        Route::get('/show/{id}', [EventController::class, 'show'])->name('events.show');
         Route::delete('/delete/{id}', [EventController::class, 'destroy'])->name('events.delete');
     });
 
@@ -88,7 +88,7 @@ Route::middleware([DolibarrAuthMiddleware::class])->group(function () {
         Route::post('/add', [ConferenceController::class, 'store'])->name('conferences.store');
         Route::get('/edit/{id}', [ConferenceController::class, 'edit'])->name('conferences.edit');
         Route::put('/edit/{id}', [ConferenceController::class, 'update'])->name('conferences.update');
-        Route::get('/view/{id}', [ConferenceController::class, 'show'])->name('conferences.view');
+        Route::get('/show/{id}', [ConferenceController::class, 'show'])->name('conferences.show');
         Route::delete('/delete/{id}', [ConferenceController::class, 'destroy'])->name('conferences.delete');
     });
 });

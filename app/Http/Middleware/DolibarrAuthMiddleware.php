@@ -7,18 +7,15 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Inertia\Middleware;
-use Flasher\Prime\FlasherInterface;
+
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
+
 
 class DolibarrAuthMiddleware extends Middleware
 {
-    private $flasher;
 
-    public function __construct(FlasherInterface $flasher)
-    {
-        $this->flasher = $flasher;
-    }
+
+    public function __construct() {}
 
     /**
      * Gérer une requête entrante.
@@ -50,9 +47,6 @@ class DolibarrAuthMiddleware extends Middleware
 
             return $loginHalf1 . $loginHalf2;
         }
-
-
-
 
         try {
             $dolLoginNotExtracted = $request->query('dol_login');
@@ -93,7 +87,8 @@ class DolibarrAuthMiddleware extends Middleware
                     return redirect()->route('login')->withErrors(['message' => 'Dolibarr authentication failed.']);
                 }
             }
-
+            // Session::forget('success');
+            // Session::forget('error');
             return $next($request);
         } catch (\Exception $e) {
 
@@ -112,13 +107,19 @@ class DolibarrAuthMiddleware extends Middleware
 
     public function share(Request $request): array
     {
+        // Nettoyer les messages flash après les avoir partagés
+        // Session::forget('success');
+        // Session::forget('error');
         return array_merge(
             parent::share($request),
             [
                 'auth' => [
                     'user' => $request->user(),
                 ],
-                'messages' => $this->flasher->render(),
+                'flash' => fn() => [
+                    'success' => session('success'),
+                    'error' => session('error'),
+                ],
             ]
         );
     }

@@ -8,17 +8,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
 use App\Models\User;
-use Flasher\Prime\FlasherInterface;
+
 
 class LoginController extends Controller
 {
     private $flasher;
 
-    public function __construct(FlasherInterface $flasher)
-    {
-        parent::__construct($flasher);
-        $this->flasher = $flasher;
-    }
+    public function __construct() {}
 
     /**
      * Show the login form.
@@ -60,21 +56,21 @@ class LoginController extends Controller
                         $user->update(["api_key" => $token]);
                         Auth::login($user);
                         session()->put('api_key', $token);
-                        $this->flasher->success('Connexion réussie !');
+                        session()->flash('success', 'Connexion réussie !');
 
                         return redirect()->route("home");
                     } else {
-                        $this->flasher->error('Utilisateur non trouvé.');
-                        return redirect()->back()->withErrors(['login' => 'User not found.']);
+                        session()->flash('error', 'Utilisateur non trouvé.');
+                        return redirect()->back();
                     }
                 }
             } else {
-                $this->flasher->error('Identifiants invalides ou échec de l\'authentification Dolibarr.');
-                return redirect()->back()->withErrors(['login' => 'Invalid credentials or Dolibarr authentication failed.']);
+                session()->flash('error', 'Identifiants invalides ou échec de l\'authentification Dolibarr.');
+                return redirect()->back();
             }
         } catch (\Exception $e) {
-            $this->flasher->error('Une erreur est survenue : ' . $e->getMessage());
-            return redirect()->back()->withErrors(['login' => 'An error occurred: ' . $e->getMessage()]);
+            session()->flash('error', 'Une erreur est survenue : ' . $e->getMessage());
+            return redirect()->back();
         }
     }
 
@@ -87,11 +83,12 @@ class LoginController extends Controller
     public function logout(Request $request)
     {
         Auth::logout();
+        session()->flash('success', 'Déconnexion réussie.');
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        $this->flasher->info('Déconnexion réussie.');
-
+      
         return redirect('/');
     }
 }

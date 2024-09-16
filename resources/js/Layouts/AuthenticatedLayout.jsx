@@ -17,13 +17,35 @@ import {
 import PrimaryButton from "../Components/PrimaryButton";
 import { GridAddIcon } from "@mui/x-data-grid";
 import SecondaryButton from "../Components/SecondaryButton";
-import { Divider } from "@mui/material";
+import { Alert, Divider, Snackbar } from "@mui/material";
 import { Input } from "@headlessui/react";
-import { router } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
+// import { Toast } from "@radix-ui/react-toast";
 
-export default function Authenticated({ user, header, children, messages }) {
+export default function Authenticated({ user, header, children }) {
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
+    const { flash } = usePage().props;
+    const [open, setOpen] = useState(false);
+    const [message, setMessage] = useState("");
+    const [severity, setSeverity] = useState("success");
+
+    useEffect(() => {
+        if (flash) {
+            if (flash.success) {
+                setMessage(flash.success);
+                setSeverity("success");
+                setOpen(true);
+            } else if (flash.error) {
+                setMessage(flash.error);
+                setSeverity("error");
+                setOpen(true);
+            }
+        }
+    }, [flash]);
+    const handleClose = () => {
+        setOpen(false);
+    };
     const [isFullScreen, setIsFullScreen] = useState(false);
 
     const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -100,7 +122,7 @@ export default function Authenticated({ user, header, children, messages }) {
                             >
                                 <ChevronLeft className="h-5 w-5 text-gray-500" />
                                 <span className="text-gray-700 dark:text-gray-300">
-                                    Home
+                                    Accueil
                                 </span>
                             </NavLink> */}
                         </div>
@@ -130,7 +152,7 @@ export default function Authenticated({ user, header, children, messages }) {
                             <div className="relative hidden md:block">
                                 <input
                                     type="text"
-                                    placeholder="Search..."
+                                    placeholder="Rechercher..."
                                     className="bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
                                 />
                                 <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" />
@@ -140,13 +162,13 @@ export default function Authenticated({ user, header, children, messages }) {
                             <div className="flex items-center space-x-2">
                                 <SecondaryButton className="bg-white dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600">
                                     <GridAddIcon className="mr-2" />
-                                    Task
+                                    Tâche
                                 </SecondaryButton>
                                 <PrimaryButton
                                     onClick={() => router.get("/projects/add")}
                                 >
                                     <GridAddIcon className="mr-2" />
-                                    Project
+                                    Projet
                                 </PrimaryButton>
                             </div>
 
@@ -162,7 +184,7 @@ export default function Authenticated({ user, header, children, messages }) {
                                     </Dropdown.Trigger>
                                     <Dropdown.Content align="right">
                                         <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
-                                            Signed in as:
+                                            Connecté en tant que:
                                             <div className="font-bold">
                                                 {user.login}
                                             </div>
@@ -171,14 +193,14 @@ export default function Authenticated({ user, header, children, messages }) {
                                         <Dropdown.Link
                                             href={route("profile.edit")}
                                         >
-                                            Profile
+                                            Profil
                                         </Dropdown.Link>
                                         <Dropdown.Link
                                             href={route("logout")}
                                             method="post"
                                             as="button"
                                         >
-                                            Log Out
+                                            Déconnexion
                                         </Dropdown.Link>
                                     </Dropdown.Content>
                                 </Dropdown>
@@ -198,7 +220,7 @@ export default function Authenticated({ user, header, children, messages }) {
                                 href={route("home")}
                                 active={route().current("home")}
                             >
-                                Home
+                                Accueil
                             </ResponsiveNavLink>
                         </div>
                         <div className="pt-4 pb-1 border-t border-gray-200 dark:border-gray-700">
@@ -212,14 +234,14 @@ export default function Authenticated({ user, header, children, messages }) {
                             </div>
                             <div className="mt-3 space-y-1">
                                 <ResponsiveNavLink href={route("profile.edit")}>
-                                    Profile
+                                    Profil
                                 </ResponsiveNavLink>
                                 <ResponsiveNavLink
                                     method="post"
                                     href={route("logout")}
                                     as="button"
                                 >
-                                    Log Out
+                                    Déconnexion
                                 </ResponsiveNavLink>
                             </div>
                         </div>
@@ -227,7 +249,23 @@ export default function Authenticated({ user, header, children, messages }) {
                 </nav>
 
                 {/* Main Content Area */}
-                <main className="p-5 overflow-y-auto h-screen pb-20">
+                <main className="p-5  overflow-y-auto h-screen pb-20">
+                    <Snackbar
+                        open={open}
+                        autoHideDuration={6000}
+                        onClose={handleClose}
+                        anchorOrigin={{
+                            vertical: "top",
+                            horizontal: "right",
+                        }}
+                        className="cursor-pointer shadow-lg"
+                    >
+                        <Alert onClose={handleClose} severity={severity}>
+                            <span
+                                dangerouslySetInnerHTML={{ __html: message }}
+                            />
+                        </Alert>
+                    </Snackbar>
                     {header}
                     {children}
                 </main>

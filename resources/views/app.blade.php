@@ -22,9 +22,5 @@
 <body class="font-sans antialiased">
     @inertia
 </body>
-{{-- 
-<script src="{{ asset('plugin/sceditor/minified/sceditor.min.js') }}"></script>
-<script src="{{ asset('plugin/sceditor/minified/formats/bbcode.js') }}"></script>
-<script src="{{ asset('plugin/sceditor/minified/formats/xhtml.js') }}"></script> --}}
 
 </html>

@@ -1,5 +1,5 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head, Link, router } from "@inertiajs/react";
+import { Head, Link, router, useForm } from "@inertiajs/react";
 import React, { useState } from "react";
 import {
     Box,
@@ -9,25 +9,39 @@ import {
     Grid,
     Pagination,
     createTheme,
+    styled,
+    IconButton,
 } from "@mui/material";
-import { DataGrid, GridAddIcon } from "@mui/x-data-grid";
+import {
+    DataGrid,
+    GridAddIcon,
+    GridToolbar,
+    GridToolbarExport,
+} from "@mui/x-data-grid";
 import { Button } from "@/components/ui/button";
 import PrimaryButton from "@/Components/PrimaryButton";
 import { Input } from "@headlessui/react";
-import { GlobeIcon, GlobeLockIcon, GridIcon, SearchIcon } from "lucide-react";
 import {
-    ContextMenu,
-    ContextMenuContent,
-    ContextMenuItem,
-    ContextMenuTrigger,
-} from "@/components/ui/context-menu";
+    Calendar,
+    DeleteIcon,
+    EditIcon,
+    GlobeIcon,
+    GlobeLockIcon,
+    GridIcon,
+    ImageIcon,
+    SearchIcon,
+    ViewIcon,
+} from "lucide-react";
+
 import MyHeader from "@/Components/Header";
 import {
     Assessment,
     AttachMoney,
     CalendarToday,
     Lock,
+    MoreHorizSharp,
     Person,
+    PictureAsPdf,
     TableView,
     Visibility,
 } from "@mui/icons-material";
@@ -40,6 +54,9 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import ConfirmModal from "@/Components/ConfirmModal";
+import { AvatarIcon, ButtonIcon } from "@radix-ui/react-icons";
+import { CardFooter } from "@/components/ui/card";
 
 const theme = createTheme({
     mixins: {
@@ -51,6 +68,7 @@ const theme = createTheme({
         },
     },
 });
+
 const UserAvatars = ({ users }) => {
     const maxDisplay = 2;
     const displayedUsers = users.slice(0, maxDisplay);
@@ -100,29 +118,67 @@ const UserAvatars = ({ users }) => {
     );
 };
 
-// Définir les statuts de projet avec leurs couleurs
-const projectStatuses = [
-    { label: "En cours", value: "in_progress", color: "blue" },
-    { label: "En attente", value: "on_hold", color: "orange" },
-    { label: "Terminé", value: "completed", color: "green" },
-    { label: "Annulé", value: "canceled", color: "red" },
-];
+const UserAvatars2 = ({ users }) => {
+    const maxDisplay = 2;
+    const displayedUsers = users.slice(0, maxDisplay);
+    const moreCount = users.length - maxDisplay;
 
-const getStatusLabel = (statusValue) => {
-    const status = projectStatuses.find(
-        (status) => status.value === statusValue
+    return (
+        <div style={{ display: "flex", alignItems: "center" }}>
+            {displayedUsers.map((user, index) => (
+                <TooltipProvider key={user.id}>
+                    <Tooltip>
+                        <TooltipTrigger>
+                            <Avatar
+                                src={user.avatarUrl}
+                                alt={user.firstname}
+                                style={{
+                                    marginLeft: index > 0 ? -10 : 0,
+                                    width: 25,
+                                    height: 25,
+                                }}
+                            />
+                        </TooltipTrigger>
+                        <TooltipContent
+                            style={{
+                                backgroundColor: "white",
+                                color: "black",
+                                borderRadius: "4px",
+                                padding: "8px",
+                                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                                fontSize: "0.875rem",
+                                zIndex: 99999,
+                            }}
+                        >
+                            <div>
+                                <strong>
+                                    {user.firstname} {user.lastname}
+                                </strong>
+                                <div>{user.email}</div>
+                            </div>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            ))}
+            {moreCount > 0 && (
+                <Badge
+                    badgeContent={`+${moreCount}`}
+                    color="secondary"
+                    style={{ marginLeft: 10 }}
+                />
+            )}
+        </div>
     );
-    return status ? status.label : statusValue;
 };
 
 export default function Projects({ auth, projects }) {
-    console.log(projects);
+    const [dialogOpen, setDialogOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedRow, setSelectedRow] = useState(null);
-    const [gridView, setGridView] = useState(false); // État pour basculer entre la vue en grille et la vue en tableau
-    const [currentPage, setCurrentPage] = useState(1); // État pour la pagination
-    const itemsPerPage = 12;
-    // Filtrer les projets en fonction de la recherche
+    const [gridView, setGridView] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(5);
+    const { delete: deleteRequest } = useForm();
     const filteredProjects = projects.filter((project) => {
         const searchableText =
             `${project.reference} ${project.label} ${project.assignedTo}`.toLowerCase();
@@ -134,22 +190,22 @@ export default function Projects({ auth, projects }) {
         currentPage * itemsPerPage
     );
 
-    // Fonction pour basculer entre la vue en grille et la vue en tableau
     const toggleGridView = () => {
+        if (gridView === false) {
+            setItemsPerPage(8);
+        } else {
+            setItemsPerPage(5);
+        }
         setGridView(!gridView);
     };
 
-    // Fonction pour gérer la modification du projet
     const handleEditProject = (projectId) => {
         router.get(`/projects/edit/${projectId}`);
     };
 
     // Fonction pour gérer la suppression du projet
     const handleDeleteProject = (projectId) => {
-        if (confirm("Êtes-vous sûr de vouloir supprimer ce projet?")) {
-            // Logique pour supprimer le projet (ex: faire une requête DELETE)
-            console.log(`Supprimer le projet avec ID: ${projectId}`);
-        }
+        setDialogOpen(true);
     };
 
     const arrayfields = {
@@ -190,7 +246,9 @@ export default function Projects({ auth, projects }) {
                             headerName: "Référence",
                             width: 150,
                             renderCell: (params) => (
-                                <Link>
+                                <Link
+                                    href={`/projects/show/${params.row.rowid}`}
+                                >
                                     <p className="text-blue-500 font-medium">
                                         {params.value || "N/A"}
                                     </p>
@@ -284,7 +342,7 @@ export default function Projects({ auth, projects }) {
                             headerName: "Assigné à",
                             width: 250,
                             renderCell: (params) => (
-                                <div className="flex items-center">
+                                <div className="flex items-center h-full">
                                     <UserAvatars users={params.value} />
                                 </div>
                             ),
@@ -295,7 +353,7 @@ export default function Projects({ auth, projects }) {
                             headerName: "Statut opportunités",
                             width: 150,
                             renderCell: (params) => (
-                                <p className="text-gray-800 font-medium">
+                                <p className="text-gray-800 font-medium bg-">
                                     {params.value || "N/A"}
                                 </p>
                             ),
@@ -451,6 +509,168 @@ export default function Projects({ auth, projects }) {
     };
 
     const columns = generateColumns(arrayfields);
+
+    columns.unshift({
+        field: "actions",
+        headerName: "Actions",
+        width: 150,
+        sortable: false,
+        renderCell: (params) => (
+            <div className="flex space-x-2 text-sm  h-full w-full">
+                {/* <IconButton
+                // size="small"
+                    aria-label="view"
+                    color="primary"
+                    onClick={() => handleView(params.row)}
+                >
+                    <ViewIcon size={20}/>
+                </IconButton> */}
+                <IconButton
+                    aria-label="edit"
+                    color="primary"
+                    onClick={() => handleEdit(params.row)}
+                >
+                    <EditIcon size={20} />
+                </IconButton>
+                <IconButton
+                    aria-label="delete"
+                    color="error"
+                    onClick={(event) => {
+                        // event.stopPropagation();
+                        handleDelete(params.row);
+                    }}
+                >
+                    <DeleteIcon size={20} />
+                </IconButton>
+                <IconButton
+                    aria-label="pdf"
+                    color="primary"
+                    onClick={() => handleExportPDF(params.row)}
+                >
+                    <PictureAsPdf size={10} />
+                </IconButton>
+            </div>
+        ),
+    });
+
+    columns.unshift({
+        field: "rowid",
+        headerName: "ID",
+        width: 0,
+        renderCell: () => null,
+    });
+    // Fonctions de gestion des actions
+    const handleView = (row) => {
+        console.log("View", row);
+        // Logique pour visualiser l'élément
+    };
+
+    const handleEdit = (row, event) => {
+        // event.current.stopPropagation();
+        console.log("Edit", row);
+        // Logique pour modifier l'élément
+    };
+
+    const [currentFocusRow, setCureentFocusRow] = useState(null);
+
+    const handleDelete = (row) => {
+        setCureentFocusRow(row);
+        setDialogOpen(true);
+        // console.log("Delete", row);
+    };
+
+    const handleConfirmDelete = () => {
+        console.log(currentFocusRow.rowid);
+        deleteRequest(`/projects/delete/${currentFocusRow.rowid}`, {
+            onSuccess: () => {
+                console.log("yes");
+            },
+            onError: (errors) => {
+                console.error(errors);
+            },
+        });
+        setDialogOpen(false);
+    };
+
+    const handleExportPDF = (row) => {
+        console.log("Export PDF", row);
+        // Logique pour exporter en PDF
+    };
+    const StyledDataGrid = styled(DataGrid)(({ theme }) => ({
+        border: 0,
+        color: "rgba(255,255,255,0.85)",
+        fontFamily: [
+            "-apple-system",
+            "BlinkMacSystemFont",
+            '"Segoe UI"',
+            "Roboto",
+            '"Helvetica Neue"',
+            "Arial",
+            "sans-serif",
+            '"Apple Color Emoji"',
+            '"Segoe UI Emoji"',
+            '"Segoe UI Symbol"',
+        ].join(","),
+        WebkitFontSmoothing: "auto",
+        letterSpacing: "normal",
+        "& .MuiDataGrid-columnsContainer": {
+            backgroundColor: "#1d1d1d",
+            ...theme.applyStyles("light", {
+                backgroundColor: "#fafafa",
+            }),
+        },
+        // "& .MuiDataGrid-iconSeparator": {
+        //     display: "none",
+        // },
+        "& .MuiDataGrid-columnHeader": { paddingHorizontal: 10 },
+        "& .MuiDataGrid-columnHeader, .MuiDataGrid-cell": {
+            borderRight: "1px solid #303030",
+            ...theme.applyStyles("light", {
+                borderRightColor: "#f0f0f0",
+            }),
+        },
+        "& .MuiDataGrid-columnsContainer, .MuiDataGrid-cell": {
+            borderBottom: "1px solid #303030",
+            ...theme.applyStyles("light", {
+                borderBottomColor: "#f0f0f0",
+            }),
+        },
+        "& .MuiDataGrid-cell": {
+            color: "rgba(255,255,255,0.65)",
+            ...theme.applyStyles("light", {
+                color: "rgba(0,0,0,.85)",
+            }),
+        },
+        "& .MuiPaginationItem-root": {
+            borderRadius: 0,
+        },
+        // Style for odd rows
+        "& .MuiDataGrid-row:nth-of-type(odd)": {
+            backgroundColor: "#2d2d2d",
+            ...theme.applyStyles("light", {
+                backgroundColor: "#f9f9f9",
+            }),
+        },
+        // Style for even rows
+        "& .MuiDataGrid-row:nth-of-type(even)": {
+            backgroundColor: "#1d1d1d",
+            ...theme.applyStyles("light", {
+                backgroundColor: "#ffffff",
+            }),
+        },
+
+        ...theme.applyStyles("light", {
+            color: "rgba(0,0,0,.85)",
+            "& .MuiDataGrid-row:nth-of-type(odd)": {
+                backgroundColor: "#f9f9f9",
+            },
+            // Style for even rows
+            "& .MuiDataGrid-row:nth-of-type(even)": {
+                backgroundColor: "#ffffff",
+            },
+        }),
+    }));
+
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -504,58 +724,95 @@ export default function Projects({ auth, projects }) {
             <div className="mx-auto p-6 pt-0 space-y-5">
                 {gridView ? (
                     <Grid container spacing={2}>
-                        {paginatedProjects.map((project) => (
-                            <Grid
-                                item
-                                xs={12}
-                                sm={6}
-                                md={4}
-                                lg={3}
-                                key={project.id}
-                            >
+                        {paginatedProjects.map((project, index) => (
+                            <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
                                 <Card
+                                    elevation={1}
                                     sx={{
                                         backgroundColor: "background.paper",
-                                        boxShadow: 3,
+                                        // boxShadow:1,
                                         borderRadius: 2,
+                                        transition: "transform 0.2s",
+                                        "&:hover": {
+                                            transform: "translateY(-5px)",
+                                        },
                                     }}
+                                    className="dark:bg-gray-800 dark:text-gray-300 h-full  flex flex-col justify-between"
                                 >
                                     <CardContent>
-                                        <Typography variant="h6">
-                                            {project.label}
-                                        </Typography>
-                                        <Typography variant="body2">
-                                            Référence: {project.reference}
-                                        </Typography>
-                                        <Typography variant="body2">
-                                            Date début: {project.startDate}
-                                        </Typography>
-                                        <Typography variant="body2">
-                                            Date fin: {project.endDate}
-                                        </Typography>
-                                        <Typography variant="body2">
-                                            Assigné à: {project.assignedTo}
-                                        </Typography>
-                                        <Typography variant="body2">
-                                            Statut:{" "}
-                                            {getStatusLabel(project.status)}
-                                        </Typography>
-                                        <Typography variant="body2">
-                                            Visibilité: {project.visibility}
-                                        </Typography>
-                                        <Typography variant="body2">
-                                            Montant opportunité:{" "}
-                                            {project.opportunityAmount}
-                                        </Typography>
-                                        <Typography variant="body2">
-                                            Probabilité opportunité:{" "}
-                                            {Math.round(
-                                                project.opportunityProbability *
-                                                    100
-                                            )}
-                                            %
-                                        </Typography>
+                                        <Box className="flex items-center justify-between mb-2">
+                                            <Avatar
+                                                // src={user.avatarUrl}
+                                                // alt={user.firstname}
+                                                style={{
+                                                    width: 40,
+                                                    height: 40,
+                                                }}
+                                            />
+                                            <Button className="bg-transparent shadow-none p-0 hover:bg-transparent ">
+                                                <MoreHorizSharp className="text-gray-500" />
+                                            </Button>
+                                        </Box>
+                                        <Box>
+                                            <Typography
+                                                variant="h6"
+                                                className="capitalize font-semibold"
+                                            >
+                                                {project.title}
+                                            </Typography>
+                                            <Typography
+                                                variant="body1"
+                                                className="text-gray-600 font-medium"
+                                            >
+                                                {project.ref}
+                                            </Typography>
+                                            <Typography
+                                                variant="body2"
+                                                className="text-gray-600 mt-2 line-clamp-3"
+                                            >
+                                                {project.description}
+                                            </Typography>
+                                        </Box>
                                     </CardContent>
+                                    <CardFooter className="p-4 ">
+                                        <Box className="flex items-center justify-between w-full">
+                                            <Box>
+                                                <Box className="flex items-end space-x-2 mb-2">
+                                                    <Calendar
+                                                        className="text-gray-500"
+                                                        size={20}
+                                                    />
+                                                    <Typography
+                                                        variant="caption"
+                                                        className="text-gray-600"
+                                                    >
+                                                        Début{" "}
+                                                        {project.dateo
+                                                            ? project.dateo
+                                                            : "-"}
+                                                    </Typography>
+                                                </Box>
+                                                <Box className="flex items-end space-x-2">
+                                                    <Calendar
+                                                        className="text-gray-500"
+                                                        size={20}
+                                                    />
+                                                    <Typography
+                                                        variant="caption"
+                                                        className="text-gray-600"
+                                                    >
+                                                        Fin{" "}
+                                                        {project.datee
+                                                            ? project.datee
+                                                            : "-"}
+                                                    </Typography>
+                                                </Box>
+                                            </Box>
+                                            <UserAvatars2
+                                                users={project.assigned_users}
+                                            />
+                                        </Box>
+                                    </CardFooter>
                                 </Card>
                             </Grid>
                         ))}
@@ -563,9 +820,17 @@ export default function Projects({ auth, projects }) {
                 ) : (
                     <Box
                         sx={{ minHeight: 300, width: "100%" }}
-                        className="bg-white dark:bg-gray-900 rounded-md overflow-hidden shadow-sm"
+                        className="bg-white dark:bg-gray-800 rounded-md overflow-hidden shadow-sm"
                     >
-                        <DataGrid
+                        <StyledDataGrid
+                            slots={{ toolbar: GridToolbar }}
+                            initialState={{
+                                columns: {
+                                    columnVisibilityModel: {
+                                        rowid: false,
+                                    },
+                                },
+                            }}
                             hideFooter
                             rows={paginatedProjects}
                             columns={columns}
@@ -573,33 +838,6 @@ export default function Projects({ auth, projects }) {
                             rowsPerPageOptions={[10]}
                             checkboxSelection
                             getRowId={(row) => row.rowid}
-                            sx={{
-                                borderRadius: 0,
-                                border: 0,
-                                height: "100%",
-                                // boxShadow: 2,
-                                // border: 2,
-                                // borderColor: 'primary.light',
-                                // '& .MuiDataGrid-cell:hover': {
-                                //   color: 'primary.main',
-                                // },
-                                "& .MuiDataGrid-columnHeader, .MuiDataGrid-cell":
-                                    {
-                                        borderRight: "1px solid #303030",
-                                        ...theme.applyStyles("light", {
-                                            borderRightColor: "#f0f0f0",
-                                        }),
-                                    },
-                                "& .MuiDataGrid-columnHeader": {
-                                    backgroundColor: "#d1d5db",
-                                    color: "#374151",
-                                },
-                            }}
-                            getRowClassName={(params) =>
-                                params.indexRelativeToCurrentPage % 2 === 0
-                                    ? "even"
-                                    : "odd"
-                            }
                         />
                     </Box>
                 )}
@@ -608,61 +846,19 @@ export default function Projects({ auth, projects }) {
                     page={currentPage}
                     onChange={(event, value) => setCurrentPage(value)}
                     color="primary"
+                    className="dark:text-gray-300"
+                    lang="fr"
+                    // title="nombre des pages"
                 />
             </div>
+
+            <ConfirmModal
+                open={dialogOpen}
+                onClose={() => setDialogOpen(false)}
+                onConfirm={() => handleConfirmDelete()}
+                title="Confirmer la suppresion"
+                content="Êtes-vous sûr de vouloir supprimer ce projet ?"
+            />
         </AuthenticatedLayout>
     );
 }
-
-// const StyledDataGrid = styled(DataGrid)(({ theme }) => ({
-//     border: 0,
-//     color: 'rgba(255,255,255,0.85)',
-//     fontFamily: [
-//       '-apple-system',
-//       'BlinkMacSystemFont',
-//       '"Segoe UI"',
-//       'Roboto',
-//       '"Helvetica Neue"',
-//       'Arial',
-//       'sans-serif',
-//       '"Apple Color Emoji"',
-//       '"Segoe UI Emoji"',
-//       '"Segoe UI Symbol"',
-//     ].join(','),
-//     WebkitFontSmoothing: 'auto',
-//     letterSpacing: 'normal',
-//     '& .MuiDataGrid-columnsContainer': {
-//       backgroundColor: '#1d1d1d',
-//       ...theme.applyStyles('light', {
-//         backgroundColor: '#fafafa',
-//       }),
-//     },
-//     '& .MuiDataGrid-iconSeparator': {
-//       display: 'none',
-//     },
-//     '& .MuiDataGrid-columnHeader, .MuiDataGrid-cell': {
-//       borderRight: '1px solid #303030',
-//       ...theme.applyStyles('light', {
-//         borderRightColor: '#f0f0f0',
-//       }),
-//     },
-//     '& .MuiDataGrid-columnsContainer, .MuiDataGrid-cell': {
-//       borderBottom: '1px solid #303030',
-//       ...theme.applyStyles('light', {
-//         borderBottomColor: '#f0f0f0',
-//       }),
-//     },
-//     '& .MuiDataGrid-cell': {
-//       color: 'rgba(255,255,255,0.65)',
-//       ...theme.applyStyles('light', {
-//         color: 'rgba(0,0,0,.85)',
-//       }),
-//     },
-//     '& .MuiPaginationItem-root': {
-//       borderRadius: 0,
-//     },
-//     ...customCheckbox(theme),
-//     ...theme.applyStyles('light', {
-//       color: 'rgba(0,0,0,.85)',
-//     }),
-//   }));
