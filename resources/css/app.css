@@ -211,3 +211,11 @@
     font-family: "Arial", sans-serif; /* Custom font */
     overflow-y: auto; /* Scroll if content overflows vertically */
 }
+
+
+
+/* 
+*::-webkit-scrollbar{
+    width: 100px;
+    height: 10px;
+} */

@@ -11,18 +11,29 @@ import {
     createTheme,
     styled,
     IconButton,
+    Paper,
+    MenuList,
+    MenuItem,
+    ListItemIcon,
+    ListItemText,
+    Divider,
 } from "@mui/material";
 import {
     DataGrid,
     GridAddIcon,
     GridToolbar,
+    GridToolbarColumnsButton,
+    GridToolbarContainer,
+    GridToolbarDensitySelector,
     GridToolbarExport,
+    GridToolbarFilterButton,
 } from "@mui/x-data-grid";
 import { Button } from "@/components/ui/button";
 import PrimaryButton from "@/Components/PrimaryButton";
 import { Input } from "@headlessui/react";
 import {
     Calendar,
+    Cloud,
     DeleteIcon,
     EditIcon,
     GlobeIcon,
@@ -38,6 +49,9 @@ import {
     Assessment,
     AttachMoney,
     CalendarToday,
+    ContentCopy,
+    ContentCut,
+    ContentPaste,
     Lock,
     MoreHorizSharp,
     Person,
@@ -57,6 +71,7 @@ import {
 import ConfirmModal from "@/Components/ConfirmModal";
 import { AvatarIcon, ButtonIcon } from "@radix-ui/react-icons";
 import { CardFooter } from "@/components/ui/card";
+import { frFR, nlNL } from "@mui/material/locale";
 
 const theme = createTheme({
     mixins: {
@@ -249,7 +264,7 @@ export default function Projects({ auth, projects }) {
                                 <Link
                                     href={`/projects/show/${params.row.rowid}`}
                                 >
-                                    <p className="text-blue-500 font-medium">
+                                    <p className="text-indigo-500 font-medium">
                                         {params.value || "N/A"}
                                     </p>
                                 </Link>
@@ -527,7 +542,7 @@ export default function Projects({ auth, projects }) {
                 </IconButton> */}
                 <IconButton
                     aria-label="edit"
-                    color="primary"
+                    // color="primary"
                     onClick={() => handleEdit(params.row)}
                 >
                     <EditIcon size={20} />
@@ -544,7 +559,7 @@ export default function Projects({ auth, projects }) {
                 </IconButton>
                 <IconButton
                     aria-label="pdf"
-                    color="primary"
+                    color="info"
                     onClick={() => handleExportPDF(params.row)}
                 >
                     <PictureAsPdf size={10} />
@@ -598,6 +613,8 @@ export default function Projects({ auth, projects }) {
     };
     const StyledDataGrid = styled(DataGrid)(({ theme }) => ({
         border: 0,
+        borderRadius: 8, // Border radius for the entire grid container
+        overflow: "hidden", //
         color: "rgba(255,255,255,0.85)",
         fontFamily: [
             "-apple-system",
@@ -622,7 +639,13 @@ export default function Projects({ auth, projects }) {
         // "& .MuiDataGrid-iconSeparator": {
         //     display: "none",
         // },
-        "& .MuiDataGrid-columnHeader": { paddingHorizontal: 10 },
+        "& .MuiDataGrid-columnHeader": {
+            paddingHorizontal: 10,
+            backgroundColor: "#6875f5",
+            color: "white",
+        
+            // marginTop:10
+        },
         "& .MuiDataGrid-columnHeader, .MuiDataGrid-cell": {
             borderRight: "1px solid #303030",
             ...theme.applyStyles("light", {
@@ -670,6 +693,58 @@ export default function Projects({ auth, projects }) {
             },
         }),
     }));
+
+    function IconMenu() {
+        return (
+            <Paper sx={{ width: 320, maxWidth: "100%" }}>
+                <MenuList>
+                    <MenuItem>
+                        <ListItemIcon>
+                            <ContentCut fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText>Cut</ListItemText>
+                        <Typography
+                            variant="body2"
+                            sx={{ color: "text.secondary" }}
+                        >
+                            ⌘X
+                        </Typography>
+                    </MenuItem>
+                    <MenuItem>
+                        <ListItemIcon>
+                            <ContentCopy fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText>Copy</ListItemText>
+                        <Typography
+                            variant="body2"
+                            sx={{ color: "text.secondary" }}
+                        >
+                            ⌘C
+                        </Typography>
+                    </MenuItem>
+                    <MenuItem>
+                        <ListItemIcon>
+                            <ContentPaste fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText>Paste</ListItemText>
+                        <Typography
+                            variant="body2"
+                            sx={{ color: "text.secondary" }}
+                        >
+                            ⌘V
+                        </Typography>
+                    </MenuItem>
+                    <Divider />
+                    <MenuItem>
+                        <ListItemIcon>
+                            <Cloud fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText>Web Clipboard</ListItemText>
+                    </MenuItem>
+                </MenuList>
+            </Paper>
+        );
+    }
 
     return (
         <AuthenticatedLayout
@@ -732,10 +807,10 @@ export default function Projects({ auth, projects }) {
                                         backgroundColor: "background.paper",
                                         // boxShadow:1,
                                         borderRadius: 2,
-                                        transition: "transform 0.2s",
-                                        "&:hover": {
-                                            transform: "translateY(-5px)",
-                                        },
+                                        // transition: "transform 0.2s",
+                                        // "&:hover": {
+                                        //     transform: "translateY(-5px)",
+                                        // },
                                     }}
                                     className="dark:bg-gray-800 dark:text-gray-300 h-full  flex flex-col justify-between"
                                 >
@@ -820,10 +895,35 @@ export default function Projects({ auth, projects }) {
                 ) : (
                     <Box
                         sx={{ minHeight: 300, width: "100%" }}
-                        className="bg-white dark:bg-gray-800 rounded-md overflow-hidden shadow-sm"
+                        className=" rounded-md overflow-hidden "
                     >
                         <StyledDataGrid
-                            slots={{ toolbar: GridToolbar }}
+                            slots={{
+                                toolbar: () => (
+                                    <GridToolbarContainer
+                                        sx={{ marginBottom: 2 }}
+                                    >
+                                        <GridToolbarColumnsButton />
+                                        {/* <GridToolbarFilterButton /> */}
+                                        <GridToolbarDensitySelector
+                                            slotProps={{
+                                                tooltip: {
+                                                    title: "Change density",
+                                                },
+                                            }}
+                                        />
+                                        <Box sx={{ flexGrow: 1 }} />
+                                        <GridToolbarExport
+                                            slotProps={{
+                                                tooltip: {
+                                                    title: "Export data",
+                                                },
+                                                button: { variant: "outlined" },
+                                            }}
+                                        />
+                                    </GridToolbarContainer>
+                                ),
+                            }}
                             initialState={{
                                 columns: {
                                     columnVisibilityModel: {
@@ -831,13 +931,15 @@ export default function Projects({ auth, projects }) {
                                     },
                                 },
                             }}
-                            hideFooter
+                            // hideFooter
+                            hideFooterPagination
                             rows={paginatedProjects}
                             columns={columns}
                             pageSize={10}
                             rowsPerPageOptions={[10]}
                             checkboxSelection
                             getRowId={(row) => row.rowid}
+                            localeText={frFR.components}
                         />
                     </Box>
                 )}

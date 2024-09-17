@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePage, Link as InertiaLink } from "@inertiajs/react";
 import { ChevronRight } from "lucide-react";
 import React from "react";
@@ -27,8 +27,8 @@ function HoveredSubMenuItem({
             href={link || "#"}
             className={`my-2 flex items-center rounded-md p-2 text-gray-600 ${
                 active
-                    ? "text-white bg-blue-500"
-                    : "text-gray-600 hover:bg-blue-50"
+                    ? "text-white bg-indigo-500 shadow-md shadow-indigo-500/40"
+                    : "text-gray-600 hover:bg-indigo-50"
             }`}
         >
             <span className="text-primary-500 h-6 w-6">{icon}</span>
@@ -76,11 +76,25 @@ export default function SidebarItem({
     const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
     const { url } = usePage();
     let hoverTimeout: ReturnType<typeof setTimeout> | null = null;
+    const subMenuRef = useRef<HTMLUListElement>(null);
 
     useEffect(() => {
-        setActive(url === link);
-        if (url === link) {
-            setExpandSubMenu(true);
+        const isActive = url===link;
+        setActive(isActive);
+        if (subMenu && subMenuRef.current) {
+            const isSubMenuActive = Array.from(
+                subMenuRef.current.children
+            ).some((child) => {
+                const linkElement = (child as HTMLElement).querySelector("a");
+                return (
+                    linkElement &&
+                    url.startsWith(linkElement.getAttribute("href") || "")
+                );
+            });
+
+            setExpandSubMenu(isActive || isSubMenuActive);
+        } else {
+            setExpandSubMenu(isActive);
         }
     }, [url, link]);
 
@@ -112,7 +126,7 @@ export default function SidebarItem({
     const handleMouseLeave = () => {
         hoverTimeout = setTimeout(() => {
             setHovered(false);
-        }, 20);
+        }, 100);
     };
 
     const subMenuHeight = expandSubMenu
@@ -120,9 +134,9 @@ export default function SidebarItem({
         : 0;
 
     const tooltipContent = subMenu ? (
-        <ul className="sub-menu">
+        <ul className="sub-menu ">
             {subMenu.map((item, index) => (
-                <li key={index}>
+                <li key={index} className="my-2">
                     <HoveredSubMenuItem
                         icon={item.icon}
                         text={item.text}
@@ -136,8 +150,12 @@ export default function SidebarItem({
         <InertiaLink
             href={link}
             className={`
-        group relative flex w-full cursor-pointer items-center rounded-md px-3 py-2 font-medium transition-colors my-1
-        ${active ? "text-white bg-blue-500" : "text-gray-600 hover:bg-blue-50"}
+        group relative flex w-full cursor-pointer items-center rounded-md px-3 py-2 font-medium transition-colors my-2
+        ${
+            active
+                ? "text-white bg-indigo-500 shadow-md shadow-indigo-500/40"
+                : "text-gray-600 hover:bg-indigo-50"
+        }
         ${!expanded && "hidden sm:flex"}
     `}
         >
@@ -156,9 +174,9 @@ export default function SidebarItem({
                 {subMenu ? (
                     <button
                         className={`
-                        group relative my-1 flex w-full cursor-pointer
+                        group relative my-2 flex w-full cursor-pointer
                         items-center rounded-md px-3
-                        py-2 font-medium transition-colors text-gray-600 hover:bg-blue-50
+                        py-2 font-medium transition-colors text-gray-600 hover:bg-indigo-50
                         ${!expanded && "hidden sm:flex"}
                     `}
                         onClick={handleSubMenuToggle}
@@ -187,11 +205,11 @@ export default function SidebarItem({
                     <InertiaLink
                         href={link}
                         className={`
-                        group relative flex w-full cursor-pointer items-center rounded-md px-3 py-2 font-medium transition-colors my-1
+                        group relative flex w-full cursor-pointer items-center rounded-md px-3 py-2 font-medium transition-colors my-2
                         ${
                             active
-                                ? "text-white bg-blue-500"
-                                : "text-gray-600 hover:bg-blue-50"
+                                ? "text-white bg-indigo-500 shadow-md shadow-indigo-500/40"
+                                : "text-gray-600 hover:bg-indigo-50"
                         }
                         ${!expanded && "hidden sm:flex"}
                     `}
@@ -212,6 +230,7 @@ export default function SidebarItem({
                     <ul
                         className="sub-menu pl-6"
                         style={{ height: subMenuHeight }}
+                        ref={subMenuRef}
                     >
                         {expanded &&
                             subMenu.map((item, index) => (

@@ -34,7 +34,7 @@ class ProjectController extends Controller
         ]);
     }
 
-    public  function store(Request $request, )
+    public  function store(Request $request,)
     {
 
 
@@ -110,11 +110,12 @@ class ProjectController extends Controller
             'note_public' => $request->note_public,
             'entity' => $request->entity,
             'ip' => $request->ip,
+            "categories" => $request->categories,
         ];
         $dataJson = json_encode(
             $data
         );
-        // dd($dataJson);
+        // dd($data);
         // exit;
         try {
             $user = Auth::user();
@@ -129,7 +130,7 @@ class ProjectController extends Controller
                 // var_dump($response->body());
                 // exit;
                 session()->flash('success', 'Projet créé avec succès!');
-             
+
                 // Redirection avec un message de succès
                 return redirect()->route('projects.index');
             } else {
@@ -137,9 +138,9 @@ class ProjectController extends Controller
                 // exit;
                 // Redirection avec un message d'erreur si l'API retourne une erreur
                 $response = json_decode($response->body());
-                // var_dump($response->error->{"0"});
-                // exit;
-                session()->flash('error', 'Erreur lors de la création du projet via l\'API Dolibarr. <br>' . $response->error->{"0"});
+                var_dump($response);
+                exit;
+                session()->flash('error', 'Erreur lors de la création du projet via l\'API Dolibarr. <br>' );
                 return redirect()->back();
             }
         } catch (\Exception $e) {
@@ -194,7 +195,7 @@ class ProjectController extends Controller
             $response = Http::withHeaders([
                 'DOLAPIKEY' => $user->api_key,
                 'Content-Type' => 'application/json',
-            ])->get(config('services.dolibarr.base_url') . '/projects/'.$id);
+            ])->get(config('services.dolibarr.base_url') . '/projects/' . $id);
             if ($response->successful()) {
                 $project = $response->json();
                 return Inertia::render('Project/show', [
@@ -281,7 +282,7 @@ class ProjectController extends Controller
             $response = Http::withHeaders([
                 'DOLAPIKEY' => $user->api_key,
                 'Content-Type' => 'application/json',
-            ])->delete(config('services.dolibarr.base_url') . '/projects/'.$id);
+            ])->delete(config('services.dolibarr.base_url') . '/projects/' . $id);
             if ($response->successful()) {
                 return redirect()->route('projects.index')->with('success', 'Projet supprimé avec succès!');
             } else {

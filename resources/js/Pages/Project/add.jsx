@@ -1,7 +1,7 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, router, useForm } from "@inertiajs/react";
 import MyHeader from "@/Components/Header";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Input } from "@headlessui/react";
 import { SearchIcon } from "lucide-react";
 import {
@@ -44,16 +44,6 @@ export default function AddProject({ auth, leadStatus, categories }) {
         setTrackOpportunity(event.target.checked);
     };
 
-    const handleTagChange = (event) => {
-        setSelectedTags(event.target.value);
-    };
-
-    const handleDeleteTag = (tagToDelete) => {
-        setSelectedTags((prevSelectedTags) =>
-            prevSelectedTags.filter((tag) => tag !== tagToDelete)
-        );
-    };
-
     const handleTrackTasksChange = (event) => {
         const checked = event.target.checked;
         setData("track_tasks", checked);
@@ -82,15 +72,15 @@ export default function AddProject({ auth, leadStatus, categories }) {
         fk_user_creat: auth?.user?.rowid,
         opp_amount: "",
         budget_amount: "",
-        usage_opportunity: false,
-        usage_task: false,
-        usage_bill_time: false,
-        usage_organize_event: false,
+        usage_opportunity: 0,
+        usage_task: 0,
+        usage_bill_time: 0,
+        usage_organize_event: 0,
         date_start_event: "",
         date_end_event: "",
         location: "",
-        accept_conference_suggestions: false,
-        accept_booth_suggestions: false,
+        accept_conference_suggestions: 0,
+        accept_booth_suggestions: 0,
         max_attendees: "",
         price_registration: "",
         price_booth: "",
@@ -100,6 +90,7 @@ export default function AddProject({ auth, leadStatus, categories }) {
         last_main_doc: "",
         import_key: "",
         extraparams: "",
+        categories: [],
     });
 
     const handleSubmit = (e) => {
@@ -141,6 +132,74 @@ export default function AddProject({ auth, leadStatus, categories }) {
         }
     }
 
+    // Utilisation d'un useMemo pour créer une structure hiérarchique des catégories
+    const categoryTree = useMemo(() => {
+        const categoryMap = new Map();
+        const rootCategories = [];
+
+        categories.forEach((cat) => {
+            categoryMap.set(cat.rowid, { ...cat, subcategories: [] });
+        });
+
+        categories.forEach((cat) => {
+            if (cat.fk_parent === 0) {
+                rootCategories.push(categoryMap.get(cat.rowid));
+            } else {
+                const parentCategory = categoryMap.get(cat.fk_parent);
+                if (parentCategory) {
+                    parentCategory.subcategories.push(
+                        categoryMap.get(cat.rowid)
+                    );
+                }
+            }
+        });
+
+        return rootCategories;
+    }, [categories]);
+
+    const findCategoryById = (id) => {
+        return categories.find((cat) => cat.rowid === id);
+    };
+
+    const getCategoryPath = (id) => {
+        const path = [];
+        let current = findCategoryById(id);
+        while (current) {
+            path.unshift(current.label);
+            current = findCategoryById(current.fk_parent);
+        }
+        return path.join(" > ");
+    };
+
+    const handleTagChange = (event) => {
+        const selectedCategoryId = event.target.value;
+        setData("categories", selectedCategoryId);
+    };
+
+    const handleDeleteTag = (tagToDelete) => {
+        setData(
+            "categories",
+            data.categories.filter((id) => id !== tagToDelete)
+        );
+    };
+
+    const renderCategoryOptions = (categories, parentPath = "") => {
+        return categories.flatMap((category) => {
+            // Build the full path for the current category
+            const fullPath = parentPath
+                ? `${parentPath} > ${category.label}`
+                : category.label;
+
+            // Return the current category option and recursively render its subcategories
+            return [
+                <MenuItem key={category.rowid} value={category.rowid}>
+                    {fullPath}
+                </MenuItem>,
+                renderCategoryOptions(category.subcategories, fullPath),
+            ];
+        });
+    };
+
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -150,13 +209,6 @@ export default function AddProject({ auth, leadStatus, categories }) {
                     breadcrumbItems={breadcrumbItems}
                     right={
                         <div className="flex space-x-4">
-                            {/* <div className="flex items-center bg-gray-50 border rounded-md overflow-hidden dark:bg-gray-900 dark:border-gray-700">
-                                <Input
-                                    className="p-2 bg-gray-50 focus:outline-none dark:bg-gray-900 dark:text-gray-100"
-                                    placeholder="Rechercher un projet"
-                                />
-                                <SearchIcon size={20} />
-                            </div PJ2409-0004> */}
                             <PrimaryButton
                                 onClick={() => router.get("/projects/add")}
                             >
@@ -327,9 +379,6 @@ export default function AddProject({ auth, leadStatus, categories }) {
                                     >
                                         Tout le monde
                                     </MenuItem>
-                                    {/* <MenuItem value="assigned">
-                                        Contacts assignés
-                                    </MenuItem> */}
                                 </Select>
                             </FormControl>
                             <InputError
@@ -360,10 +409,7 @@ export default function AddProject({ auth, leadStatus, categories }) {
                                             }}
                                             defaultValue={leadStatus[0].rowid}
                                         >
-                                            <MenuItem
-                                                // key={status.rowid}
-                                                value={"Aucun"}
-                                            >
+                                            <MenuItem value={"Aucun"}>
                                                 Aucun
                                             </MenuItem>
                                             {leadStatus.map((status) => (
@@ -383,7 +429,7 @@ export default function AddProject({ auth, leadStatus, categories }) {
                                 </div>
                                 <div>
                                     <InputLabel
-                                        htmlFor="opportunityAmount"
+                                        htmlFor="opp_percent"
                                         className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3"
                                     >
                                         Probabilité opportunité (%)
@@ -391,11 +437,11 @@ export default function AddProject({ auth, leadStatus, categories }) {
                                     <div className="bg-gray-100 dark:bg-gray-900 flex items-center space-x-2 relative">
                                         <TextField
                                             type="number"
-                                            id="opportunityAmount"
-                                            name="opp_amount"
+                                            id="opp_percent"
+                                            name="opp_percent"
                                             variant="outlined"
                                             fullWidth
-                                            placeholder="Entrez le montant de l'opportunité"
+                                            placeholder="Probabilité de l'opportunité"
                                             InputProps={{
                                                 className:
                                                     " dark:text-gray-100 dark:placeholder-gray-400",
@@ -576,14 +622,14 @@ export default function AddProject({ auth, leadStatus, categories }) {
                                             />
                                         </div>
                                     </div>
-                                    <InputError
+                                    {/* <InputError
                                         message={errors.date}
                                         className="mt-2"
-                                    />
+                                    /> */}
                                 </div>
                                 <div>
                                     <InputLabel
-                                        htmlFor="ref"
+                                        htmlFor="location"
                                         className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3"
                                         required
                                     >
@@ -591,22 +637,22 @@ export default function AddProject({ auth, leadStatus, categories }) {
                                     </InputLabel>
                                     <TextField
                                         type="text"
-                                        id="ref"
-                                        name="ref"
+                                        id="location"
+                                        name="location"
                                         variant="outlined"
                                         fullWidth
-                                        placeholder="PJ2409-0004"
+                                        placeholder=""
                                         InputProps={{
                                             className:
                                                 "bg-gray-100 dark:bg-gray-900 dark:text-gray-100  dark:placeholder-gray-400",
                                         }}
                                         onChange={(e) =>
-                                            setData("ref", e.target.value)
+                                            setData("location", e.target.value)
                                         }
                                         required
                                     />
                                     <InputError
-                                        message={errors.ref}
+                                        message={errors.location}
                                         className="mt-2"
                                     />
                                 </div>
@@ -624,44 +670,27 @@ export default function AddProject({ auth, leadStatus, categories }) {
                                 <Select
                                     id="categories"
                                     multiple
-                                    value={selectedTags}
+                                    value={data.categories}
                                     onChange={handleTagChange}
                                     renderValue={(selected) => (
                                         <div className="flex flex-wrap gap-2">
                                             {selected.map((value) => (
                                                 <Chip
                                                     key={value}
-                                                    label={
-                                                        categories.find(
-                                                            (cat) =>
-                                                                cat.rowid ===
-                                                                value
-                                                        )?.label
-                                                    }
+                                                    label={getCategoryPath(
+                                                        value
+                                                    )}
                                                     onDelete={() =>
                                                         handleDeleteTag(value)
                                                     }
                                                     deleteIcon={<Close />}
-                                                    className="bg-gray-200 dark:bg-gray-700 "
+                                                    className="bg-gray-200 dark:bg-gray-700"
                                                 />
                                             ))}
                                         </div>
                                     )}
-                                    MenuProps={{
-                                        classes: {
-                                            paper: "bg-gray-100 dark:bg-gray-900 dark:text-gray-100",
-                                        },
-                                    }}
-                                    className="bg-gray-100 dark:bg-gray-900 dark:text-gray-100"
                                 >
-                                    {categories.map((category) => (
-                                        <MenuItem
-                                            key={category.rowid}
-                                            value={category.rowid}
-                                        >
-                                            {category.label}
-                                        </MenuItem>
-                                    ))}
+                                    {renderCategoryOptions(categoryTree)}
                                 </Select>
                             </FormControl>
                         </div>

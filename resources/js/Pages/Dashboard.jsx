@@ -3,6 +3,7 @@ import { Head, router } from "@inertiajs/react";
 import {
     BarChart,
     Gauge,
+    gaugeClasses,
     LineChart,
     PieChart,
     SparkLineChart,
@@ -46,7 +47,7 @@ export default function Dashboard({ auth }) {
         },
     ];
     const gradientBackgrounds = [
-        "text-blue-500",
+        "text-indigo-500",
         "text-cyan-500",
         "text-emerald-500",
         "text-orange-500",
@@ -78,7 +79,7 @@ export default function Dashboard({ auth }) {
                 <Grid container spacing={3}>
                     {dashboardItems.map((item, index) => (
                         <Grid item xs={12} sm={6} md={3} key={index}>
-                            <Card elevation={1} className="dark:bg-gray-800 ">
+                            <Card elevation={0} className="dark:bg-gray-800 border">
                                 <CardContent>
                                     <Box
                                         display="flex"
@@ -94,7 +95,6 @@ export default function Dashboard({ auth }) {
                                             {item.title}
                                             {item.icon}
                                         </Typography>
-                                    
                                     </Box>
                                     <Gauge
                                         width={150}
@@ -102,9 +102,19 @@ export default function Dashboard({ auth }) {
                                         value={60}
                                         min={0}
                                         max={100}
-                                        color="white"
-                                        // trackColor="gray"
-                                        // textColor="white"
+                                        sx={(theme) => ({
+                                            [`& .${gaugeClasses.valueText}`]: {
+                                                fontSize: 20,
+                                            },
+                                            [`& .${gaugeClasses.valueArc}`]: {
+                                                fill: "#6875f5",
+                                            },
+                                            // [`& .${gaugeClasses.referenceArc}`]:
+                                            //     {
+                                            //         fill: theme.palette.text
+                                            //             .disabled,
+                                            //     },
+                                        })}
                                     />
                                 </CardContent>
                             </Card>
@@ -115,8 +125,8 @@ export default function Dashboard({ auth }) {
                 <Grid container spacing={3}>
                     <Grid item xs={12} md={8}>
                         <Card
-                            elevation={1}
-                            className="min-h-full dark:bg-gray-800 "
+                            elevation={0}
+                            className="min-h-full dark:bg-gray-800 border"
                             // sx={{ backgroundColor: "transparent" }}
                         >
                             <CardContent>
@@ -157,7 +167,7 @@ export default function Dashboard({ auth }) {
                         md={4}
                         className="grid grid-cols-1 gap-5"
                     >
-                        {/* <Card elevation={1} className="dark:bg-gray-800">
+                        {/* <Card elevation={0} className="dark:bg-gray-800">
                             <CardContent>
                                 <Typography
                                     variant="h6"
@@ -204,7 +214,7 @@ export default function Dashboard({ auth }) {
                                 />
                             </CardContent>
                         </Card> */}
-                        <Card elevation={1} className="dark:bg-gray-800">
+                        <Card elevation={0} className="dark:bg-gray-800 border">
                             <CardContent>
                                 <Typography
                                     variant="h6"
@@ -242,7 +252,7 @@ export default function Dashboard({ auth }) {
                                 ))}
                             </CardContent>
                         </Card>
-                        <Card elevation={1} className="dark:bg-gray-800">
+                        <Card elevation={0} className="dark:bg-gray-800 border">
                             <CardContent>
                                 <Typography
                                     variant="h6"
@@ -283,7 +293,7 @@ export default function Dashboard({ auth }) {
                     </Grid>
                 </Grid>
 
-                <Card elevation={1} className="dark:bg-gray-800">
+                <Card elevation={0} className="dark:bg-gray-800 border">
                     <CardContent>
                         <Typography
                             variant="h6"
@@ -305,7 +315,7 @@ export default function Dashboard({ auth }) {
                     </CardContent>
                 </Card>
 
-                <Card elevation={1} className="dark:bg-gray-800">
+                <Card elevation={0} className="dark:bg-gray-800 border">
                     <CardContent>
                         <Typography
                             variant="h6"
@@ -339,7 +349,7 @@ export default function Dashboard({ auth }) {
 
                 <Grid container spacing={3}>
                     <Grid item xs={12} md={8}>
-                        <Card elevation={1} className="dark:bg-gray-800">
+                        <Card elevation={0} className="dark:bg-gray-800 border">
                             <CardContent>
                                 <Typography
                                     variant="h6"
@@ -358,10 +368,10 @@ export default function Dashboard({ auth }) {
                                     )}
                                 </Stepper>
                             </CardContent>
-                        </Card>
+                        </Card> 
                     </Grid>
                     <Grid item xs={12} md={4}>
-                        <Card elevation={1} className="dark:bg-gray-800">
+                        <Card elevation={0} className="dark:bg-gray-800 border">
                             <CardContent>
                                 <Typography
                                     variant="h6"

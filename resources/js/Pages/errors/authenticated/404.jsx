@@ -1,8 +1,6 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, router } from "@inertiajs/react";
-
 import MyHeader from "@/Components/Header";
-
 import * as React from "react";
 import Box from "@mui/material/Box";
 import { DataGrid, GridAddIcon } from "@mui/x-data-grid";
@@ -10,50 +8,6 @@ import { Button } from "@/components/ui/button";
 import PrimaryButton from "@/Components/PrimaryButton";
 import { Input } from "@headlessui/react";
 import { SearchIcon } from "lucide-react";
-
-const columns = [
-    { field: "id", headerName: "ID", width: 90 },
-    {
-        field: "firstName",
-        headerName: "First name",
-        width: 150,
-        editable: true,
-    },
-    {
-        field: "lastName",
-        headerName: "Last name",
-        width: 150,
-        editable: true,
-    },
-    {
-        field: "age",
-        headerName: "Age",
-        type: "number",
-        width: 110,
-        editable: true,
-    },
-    {
-        field: "fullName",
-        headerName: "Full name",
-        description: "This column has a value getter and is not sortable.",
-        sortable: false,
-        width: 160,
-        valueGetter: (value, row) =>
-            `${row.firstName || ""} ${row.lastName || ""}`,
-    },
-];
-
-const rows = [
-    { id: 1, lastName: "Snow", firstName: "Jon", age: 14 },
-    { id: 2, lastName: "Lannister", firstName: "Cersei", age: 31 },
-    { id: 3, lastName: "Lannister", firstName: "Jaime", age: 31 },
-    { id: 4, lastName: "Stark", firstName: "Arya", age: 11 },
-    { id: 5, lastName: "Targaryen", firstName: "Daenerys", age: null },
-    { id: 6, lastName: "Melisandre", firstName: null, age: 150 },
-    { id: 7, lastName: "Clifford", firstName: "Ferrara", age: 44 },
-    { id: 8, lastName: "Frances", firstName: "Rossini", age: 36 },
-    { id: 9, lastName: "Roxie", firstName: "Harvey", age: 65 },
-];
 
 export default function Dashboard({ auth }) {
     const breadcrumbItems = [
@@ -72,17 +26,16 @@ export default function Dashboard({ auth }) {
                         <div className="flex space-x-4">
                             <div className="flex items-center bg-gray-50 pr-2 border rounded-md overflow-hidden">
                                 <Input
-                                    className={`p-2 bg-gray-50`}
-                                    placeholder="rechercher un menu"
+                                    className="p-2 bg-gray-50 border-none"
+                                    placeholder="Rechercher un menu"
                                 />
-                                <SearchIcon className="" size={20} />
+                                <SearchIcon className="text-gray-500" size={20} />
                             </div>
                             <PrimaryButton
-                                className=""
                                 onClick={() => router.get("/projects/add")}
                             >
                                 <GridAddIcon />
-                                opportunité / projet
+                                Opportunité / Projet
                             </PrimaryButton>
                         </div>
                     }
@@ -91,8 +44,22 @@ export default function Dashboard({ auth }) {
         >
             <Head title="Projets" />
 
-            <div className="mx-auto p-6 pt-0 space-y-5 flex items-center justify-center">
-                <h1>404 resources not found</h1>
+            <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
+                <div className="text-center p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+                    <h1 className="text-6xl font-bold text-red-500 dark:text-red-400 mb-4">404</h1>
+                    <p className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                        Oups ! La page que vous cherchez n'existe pas.
+                    </p>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">
+                        Il semble que vous ayez suivi un lien invalide ou que la page ait été déplacée.
+                    </p>
+                    <PrimaryButton
+                        onClick={() => router.get("/")}
+                        className="bg-blue-500 hover:bg-blue-600 text-white"
+                    >
+                        Retour à l'accueil
+                    </PrimaryButton>
+                </div>
             </div>
         </AuthenticatedLayout>
     );
