@@ -48,32 +48,40 @@ const extensions = [
     }),
 ];
 
-const EditorComponent = () => {
+const EditorComponent = ({ initialContent, onContentChange }) => {
     const [editor, setEditor] = useState(null);
     const editorRef = useRef(null);
-
     useEffect(() => {
         const editorInstance = new Editor({
             element: editorRef.current,
-            extensions: extensions,
-            // editable,
+            extensions,
+            content: initialContent || `<p>Description...</p>`, // Contenu initial
             editorProps: {
                 attributes: {
                     className:
                         "prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl m-5 focus:outline-none dark:prose-invert",
                 },
             },
-            content: `<p>Description...</p>`,
-            enablePasteRules: true
+            enablePasteRules: true,
+            onUpdate: ({ editor }) => {
+                if (onContentChange) {
+                    onContentChange(editor.getHTML()); // Mise à jour du contenu
+                }
+            },
         });
 
         setEditor(editorInstance);
 
         return () => {
-            editorInstance.destroy();
+            editorInstance.destroy(); // Détruire l'éditeur lors du démontage
         };
-    }, []);
+    }, []); // Utiliser un tableau de dépendances vide pour s'assurer que l'éditeur est initialisé qu'une seule fois
 
+    useEffect(() => {
+        if (editor && initialContent !== editor.getHTML()) {
+            editor.commands.setContent(initialContent); // Mettre à jour le contenu seulement si différent
+        }
+    }, [initialContent, editor]);
     return (
         <div className="flex flex-col   border border-gray-300 dark:text-gray-100 rounded-md shadow-sm  overflow-hidden dark:bg-gray-800 dark:border-gray-700">
             <MenuBar editor={editor} />

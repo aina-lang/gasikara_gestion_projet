@@ -43,18 +43,26 @@ export default function ShowProject({ auth, project }) {
                                 fontWeight: "bold",
                                 color: "primary.main",
                                 mb: 2,
+                                display: "flex",
+                                alignItems: "center",
                             }}
+                            dangerouslySetInnerHTML={{ __html: project.title }}
                         >
-                            <AccountTreeOutlined sx={{ mr: 1 }} />
-                            {project.title}
+                            {/* Ne pas inclure d'enfants ici */}
                         </Typography>
+
+                        {/* Description du projet */}
                         <Typography
                             variant="body1"
                             sx={{ color: "text.secondary", mb: 4 }}
                             className="flex space-x-4"
+                            dangerouslySetInnerHTML={{
+                                __html:
+                                    project.description ||
+                                    "Pas de description disponible.",
+                            }}
                         >
-                            {project.description ||
-                                "Pas de description disponible."}
+                            {/* Ne pas inclure d'enfants ici */}
                         </Typography>
                     </Grid>
                     <Grid item xs={12} md={6}>

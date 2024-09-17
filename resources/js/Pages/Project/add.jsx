@@ -62,6 +62,13 @@ export default function AddProject({ auth, leadStatus, categories }) {
         }
     };
 
+    const handleDescriptionChange = (newDescription) => {
+        setData({
+            ...data,
+            description: newDescription,
+        });
+    };
+
     const { data, setData, post, errors } = useForm({
         ref: "",
         title: "",
@@ -71,6 +78,7 @@ export default function AddProject({ auth, leadStatus, categories }) {
         public: 1,
         fk_user_creat: auth?.user?.rowid,
         opp_amount: "",
+        opp_percent: "",
         budget_amount: "",
         usage_opportunity: 0,
         usage_task: 0,
@@ -200,6 +208,10 @@ export default function AddProject({ auth, leadStatus, categories }) {
         });
     };
 
+    const formatDateTime = (date, time) => {
+        return `${date} ${time}`;
+    };
+
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -284,10 +296,8 @@ export default function AddProject({ auth, leadStatus, categories }) {
                                 onChange={(e) =>
                                     setData("title", e.target.value)
                                 }
-                            />
-                            <InputError
-                                message={errors.title}
-                                className="mt-2"
+                                error={!!errors.title}
+                                helperText={errors.title}
                             />
                         </div>
                         <div>
@@ -408,6 +418,12 @@ export default function AddProject({ auth, leadStatus, categories }) {
                                                 },
                                             }}
                                             defaultValue={leadStatus[0].rowid}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "fk_opp_status",
+                                                    e.target.value
+                                                )
+                                            }
                                         >
                                             <MenuItem value={"Aucun"}>
                                                 Aucun
@@ -416,6 +432,12 @@ export default function AddProject({ auth, leadStatus, categories }) {
                                                 <MenuItem
                                                     key={status.rowid}
                                                     value={status.rowid}
+                                                    onClick={(e) =>
+                                                        setData(
+                                                            "fk_opp_status",
+                                                            e.target.value
+                                                        )
+                                                    }
                                                 >
                                                     {status.label}
                                                 </MenuItem>
@@ -440,12 +462,19 @@ export default function AddProject({ auth, leadStatus, categories }) {
                                             id="opp_percent"
                                             name="opp_percent"
                                             variant="outlined"
+                                            value={data.opp_percent}
                                             fullWidth
                                             placeholder="Probabilité de l'opportunité"
                                             InputProps={{
                                                 className:
                                                     " dark:text-gray-100 dark:placeholder-gray-400",
                                             }}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "opp_percent",
+                                                    e.target.value
+                                                )
+                                            }
                                         />
                                         <Typography
                                             variant="h5"
@@ -471,12 +500,16 @@ export default function AddProject({ auth, leadStatus, categories }) {
                                     id="opportunityAmount"
                                     name="opp_amount"
                                     variant="outlined"
+                                    value={data.opp_amount}
                                     fullWidth
                                     placeholder="Entrez le montant de l'opportunité"
                                     InputProps={{
                                         className:
                                             "bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
                                     }}
+                                    onChange={(e) =>
+                                        setData("opp_amount", e.target.value)
+                                    }
                                 />
                             </div>
 
@@ -492,58 +525,77 @@ export default function AddProject({ auth, leadStatus, categories }) {
                                     id="budget"
                                     name="budget_amount"
                                     variant="outlined"
+                                    value={data.budget_amount}
                                     fullWidth
                                     placeholder="Entrez le budget"
                                     InputProps={{
                                         className:
                                             "bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
                                     }}
+                                    onChange={(e) =>
+                                        setData("budget_amount", e.target.value)
+                                    }
                                 />
                             </div>
-                            <InputError
-                                message={errors.budget}
-                                className="mt-2"
-                            />
                         </div>
 
                         <div>
-                            <InputLabel
-                                htmlFor="dateRange"
-                                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3"
-                            >
-                                Date
-                            </InputLabel>
                             <div className="grid grid-cols-2 gap-4">
-                                <TextField
-                                    type="date"
-                                    id="startDate"
-                                    name="dateo"
-                                    variant="outlined"
-                                    fullWidth
-                                    InputLabelProps={{
-                                        shrink: true,
-                                        className: "dark:text-gray-300",
-                                    }}
-                                    InputProps={{
-                                        className:
-                                            "bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
-                                    }}
-                                />
-                                <TextField
-                                    type="date"
-                                    id="endDate"
-                                    name="datee"
-                                    variant="outlined"
-                                    fullWidth
-                                    InputLabelProps={{
-                                        shrink: true,
-                                        className: "dark:text-gray-300",
-                                    }}
-                                    InputProps={{
-                                        className:
-                                            "bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
-                                    }}
-                                />
+                                <div>
+                                    {" "}
+                                    <InputLabel
+                                        htmlFor="startDate"
+                                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3"
+                                    >
+                                        Date début
+                                    </InputLabel>
+                                    <TextField
+                                        type="date"
+                                        id="startDate"
+                                        name="dateo"
+                                        variant="outlined"
+                                        value={data.dateo}
+                                        fullWidth
+                                        InputLabelProps={{
+                                            shrink: true,
+                                            className: "dark:text-gray-300",
+                                        }}
+                                        InputProps={{
+                                            className:
+                                                "bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
+                                        }}
+                                        onChange={(e) =>
+                                            setData("dateo", e.target.value)
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <InputLabel
+                                        htmlFor="endDate"
+                                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3"
+                                    >
+                                        Date de clôture
+                                    </InputLabel>
+                                    <TextField
+                                        type="date"
+                                        id="endDate"
+                                        name="datee"
+                                        variant="outlined"
+                                        value={data.datee}
+                                        fullWidth
+                                        InputLabelProps={{
+                                            shrink: true,
+                                            className: "dark:text-gray-300",
+                                        }}
+                                        InputProps={{
+                                            className:
+                                                "bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
+                                        }}
+                                        onChange={(e) =>
+                                            setData("datee", e.target.value)
+                                        }
+                                    />
+                                </div>
                             </div>
                             <InputError
                                 message={errors.date}
@@ -552,80 +604,70 @@ export default function AddProject({ auth, leadStatus, categories }) {
                         </div>
                         {manageEvent && (
                             <>
-                                <div className="date-selection">
-                                    <InputLabel
-                                        htmlFor="eventDateRange"
-                                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3"
-                                    >
-                                        Date (Événement)
-                                    </InputLabel>
-                                    <div className="flex items-center justify-between">
-                                        <div className="grid grid-cols-2 gap-4 grow">
-                                            <TextField
-                                                type="date"
-                                                variant="outlined"
-                                                className="mr-2"
-                                                InputLabelProps={{
-                                                    shrink: true,
-                                                    className:
-                                                        "dark:text-gray-300",
-                                                }}
-                                                InputProps={{
-                                                    className:
-                                                        "bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
-                                                }}
-                                            />
-                                            <TextField
-                                                type="time"
-                                                variant="outlined"
-                                                className="mr-2"
-                                                InputLabelProps={{
-                                                    shrink: true,
-                                                    className:
-                                                        "dark:text-gray-300",
-                                                }}
-                                                InputProps={{
-                                                    className:
-                                                        "bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
-                                                }}
-                                            />
-                                        </div>
-                                        <span className="p-2">au</span>
-                                        <div className="grid grid-cols-2 gap-4 grow">
-                                            <TextField
-                                                type="date"
-                                                variant="outlined"
-                                                className="ml-2"
-                                                InputLabelProps={{
-                                                    shrink: true,
-                                                    className:
-                                                        "dark:text-gray-300",
-                                                }}
-                                                InputProps={{
-                                                    className:
-                                                        "bg-gray-100 dark:bg-gray-900 dark:text-gray-300 dark:placeholder-gray-400",
-                                                }}
-                                            />
-                                            <TextField
-                                                type="time"
-                                                variant="outlined"
-                                                className="ml-2 text-center"
-                                                InputLabelProps={{
-                                                    shrink: true,
-                                                    className:
-                                                        "dark:text-gray-300",
-                                                }}
-                                                InputProps={{
-                                                    className:
-                                                        "bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
-                                                }}
-                                            />
-                                        </div>
+                                <div className="grid grid-cols-2 gap-4 grow">
+                                    <div className="w-full">
+                                        {" "}
+                                        <InputLabel
+                                            htmlFor="eventDateRange"
+                                            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3"
+                                        >
+                                            Date début (Événement)
+                                        </InputLabel>
+                                        <TextField
+                                            type="datetime-local"
+                                            variant="outlined"
+                                            className="mr-2 w-full"
+                                            value={data.date_start_event}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "date_start_event",
+                                                    e.target.value
+                                                )
+                                            }
+                                            InputLabelProps={{
+                                                shrink: true,
+                                                className: "dark:text-gray-300",
+                                            }}
+                                            InputProps={{
+                                                className:
+                                                    "bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
+                                            }}
+                                            error={!!errors.date_start_event}
+                                            helperText={errors.date_start_event}
+                                        />
                                     </div>
-                                    {/* <InputError
-                                        message={errors.date}
-                                        className="mt-2"
-                                    /> */}
+
+                                    <div className="w-full">
+                                        {" "}
+                                        <InputLabel
+                                            htmlFor="eventDateRange"
+                                            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3"
+                                        >
+                                            Date cloture (Événement)
+                                        </InputLabel>
+                                        <TextField
+                                            type="datetime-local"
+                                            variant="outlined"
+                                            className="ml-2 w-full"
+                                            value={data.date_end_event}
+                                            onChange={(e) =>
+                                                setData(
+                                                    "date_end_event",
+                                                    e.target.value
+                                                )
+                                            }
+                                            InputLabelProps={{
+                                                shrink: true,
+                                                className: "dark:text-gray-300",
+                                            }}
+                                            InputProps={{
+                                                className:
+                                                    "bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-400",
+                                            }}
+                                            error={!!errors.date_end_event}
+                                            helperText={errors.date_end_event}
+                                        />
+                                    </div>
                                 </div>
                                 <div>
                                     <InputLabel
@@ -703,12 +745,8 @@ export default function AddProject({ auth, leadStatus, categories }) {
                                 Description du projet
                             </InputLabel>
                             <RichTextEditor
-                                id="description"
-                                name="description"
-                                tools={tools}
-                                value=""
-                                placeholder="Entrez la description du projet"
-                                contentEditable="true"
+                                initialContent={"Descripton du projet"} // Contenu initial de l'éditeur
+                                onContentChange={handleDescriptionChange} // Gérer les changements de contenu
                                 className="dark:bg-gray-900 dark:text-gray-100"
                             />
                         </div>

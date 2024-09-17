@@ -50,8 +50,8 @@ class ProjectController extends Controller
             'fk_opp_status' => 'nullable|integer',
             'opp_percent' => 'nullable|integer',
             'public' => 'nullable|boolean',
-            'date_start' => 'nullable|date',
-            'date_end' => 'nullable|date',
+            'dateo' => 'nullable|date',
+            'datee' => 'nullable|date',
             'opp_amount' => 'nullable|numeric',
             'budget_amount' => 'nullable|numeric',
             'usage_opportunity' => 'nullable|boolean',
@@ -89,8 +89,8 @@ class ProjectController extends Controller
             'fk_opp_status' => $request->fk_opp_status,
             'opp_percent' => $request->opp_percent,
             'public' => $request->public ? 1 : 0,
-            'date_start' => $request->date_start,
-            'date_end' => $request->date_end,
+            'dateo' => $request->dateo,
+            'datee' => $request->datee,
             'opp_amount' => $request->opp_amount,
             'budget_amount' => $request->budget_amount,
             'usage_opportunity' => $request->usage_opportunity ? 1 : 0,
@@ -140,7 +140,7 @@ class ProjectController extends Controller
                 $response = json_decode($response->body());
                 var_dump($response);
                 exit;
-                session()->flash('error', 'Erreur lors de la création du projet via l\'API Dolibarr. <br>' );
+                session()->flash('error', 'Erreur lors de la création du projet via l\'API Dolibarr. <br>');
                 return redirect()->back();
             }
         } catch (\Exception $e) {
